@@ -15,6 +15,7 @@ dependencies = [
  "csv",
  "encoding",
  "rusty-hook",
+ "serde",
 ]
 
 [[package]]
