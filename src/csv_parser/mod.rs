@@ -36,9 +36,9 @@ fn get_transactions(information: &str) -> Vec<Transaction> {
 }
 
 fn get_balance(information: &str) -> f32 {
-    let mut reader2 = ReaderBuilder::new().delimiter(b';').from_reader(information.as_bytes());
+    let mut reader = ReaderBuilder::new().delimiter(b';').from_reader(information.as_bytes());
     let mut balance = 0.0;
-    for result in reader2.records(){
+    for result in reader.records(){
         let line = result.expect("Problem in line with first half of CSV file");
         let label = line.get(0).expect("Cannot get label");
         if label.to_string().contains("Solde"){
