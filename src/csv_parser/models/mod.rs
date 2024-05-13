@@ -11,3 +11,9 @@ pub struct Transaction {
     #[serde(rename = "Montant(EUROS)", deserialize_with = "deserializers::deserialize_amount")]
     amount: f32,
 }
+
+#[derive(Debug)]
+pub struct ParseResult {
+    pub transactions: Vec<Transaction>,
+    pub balance: f32,
+}
