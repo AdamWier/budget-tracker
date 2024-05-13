@@ -1,14 +1,12 @@
-pub mod models;
+mod models;
 
-use csv::{Reader, ReaderBuilder};
+use csv::ReaderBuilder;
 use encoding::all::ISO_8859_15;
 use encoding::Encoding;
 use std::fs::File;
 use std::io::Read;
 
-use self::models::Transaction;
-
-pub fn parse_csv(path: &str) -> Vec<Transaction> {
+pub fn parse_transaction_csv(path: &str) -> Vec<models::Transaction> {
     let mut file_content = Vec::new();
     let mut file = File::open(path).expect("Unable to open file");
     file.read_to_end(&mut file_content).expect("Unable to read file");
@@ -19,7 +17,7 @@ pub fn parse_csv(path: &str) -> Vec<Transaction> {
     let mut reader = ReaderBuilder::new().delimiter(b';').from_reader(transactions.as_bytes());
     let mut records = Vec::new();
     for result in reader.deserialize() {
-        let record: Transaction = result.unwrap();
+        let record: models::Transaction = result.unwrap();
         println!("{:#?}", record);
         records.push(record)
     }
