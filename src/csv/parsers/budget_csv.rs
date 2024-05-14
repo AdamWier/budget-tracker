@@ -1,6 +1,6 @@
 use csv::ReaderBuilder;
 
-use super::models::BudgetItem;
+use crate::csv::models::BudgetItem;
 
 pub fn parse_budget_csv(path: &str) -> Vec<BudgetItem>{
     let mut reader = ReaderBuilder::new().delimiter(b',').has_headers(false).from_path(path).expect("Could not parse file");

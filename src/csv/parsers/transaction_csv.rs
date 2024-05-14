@@ -4,8 +4,8 @@ use encoding::Encoding;
 use std::fs::File;
 use std::io::Read;
 
+use crate::csv::models;
 use crate::utils;
-use super::models;
 
 pub fn parse_transaction_csv(path: &str) -> models::ParseResult {
     let mut file_content = Vec::new();

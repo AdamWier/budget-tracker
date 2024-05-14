@@ -1,7 +1,7 @@
-mod csv_parser;
+mod csv;
 mod utils;
 
-use csv_parser::{transaction_csv, budget_csv};
+use csv::parsers::{transaction_csv, budget_csv};
 
 fn main() {
     let records = transaction_csv::parse_transaction_csv("test.csv");
