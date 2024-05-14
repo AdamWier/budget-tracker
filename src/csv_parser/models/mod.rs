@@ -17,3 +17,10 @@ pub struct ParseResult {
     pub transactions: Vec<Transaction>,
     pub balance: f32,
 }
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct BudgetItem {
+    label: String,
+    amount: f32,
+}
