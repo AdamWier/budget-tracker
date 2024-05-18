@@ -2,17 +2,17 @@ mod deserializers;
 
 use serde::Deserialize;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "PascalCase")]
 pub struct Transaction {
-    date: String,
+    pub date: String,
     #[serde(rename = "Libellé")]
-    label: String,
+    pub label: String,
     #[serde(rename = "Montant(EUROS)", deserialize_with = "deserializers::deserialize_amount")]
-    amount: f32,
+    pub amount: f32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct ParseResult {
     pub transactions: Vec<Transaction>,
     pub balance: f32,

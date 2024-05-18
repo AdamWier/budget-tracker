@@ -5,6 +5,8 @@ mod ui;
 use color_eyre::eyre::Result;
 use csv::parsers::{transaction_csv, budget_csv};
 
+use crate::ui::App;
+
 fn main() -> Result<()>{
     let parse_result = transaction_csv::parse_transaction_csv("test.csv");
     println!("{:#?}", parse_result);
@@ -14,6 +16,7 @@ fn main() -> Result<()>{
 
     ui::errors::install_hooks()?;
     let mut terminal = ui::wrapper::init()?;
+    App::new(parse_result).run(&mut terminal)?;
     ui::wrapper::restore()?;
     Ok(())
 }
