@@ -20,9 +20,10 @@ pub struct App {
 
 impl App {
     pub fn new(parse_result: ParseResult) -> App {
-        let mut app = App::default();
-        app.parse_result = parse_result;
-        app
+        App {
+            parse_result,
+            ..Default::default()
+        }
     }
     pub fn run(&mut self, terminal: &mut Tui) -> Result<()> {
         while !self.exit {
