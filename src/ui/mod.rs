@@ -34,7 +34,7 @@ impl App {
     }
 
     fn render_frame(&mut self, frame: &mut Frame) {
-        self.main_layout.render(frame);
+        self.main_layout.render(frame, frame.size());
     }
 
     fn handle_events(&mut self) -> Result<()> {

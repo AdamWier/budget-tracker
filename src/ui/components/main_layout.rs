@@ -1,27 +1,26 @@
 use std::rc::Rc;
 
-use crossterm::event::KeyCode;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::Text,
-    widgets::{Block, Borders, List, Paragraph},
+    widgets::{Block, Borders, Paragraph},
     Frame,
 };
 
-use super::{transaction_list::TransactionList, Component};
+use super::{activity_area_layout::ActivityAreaLayout, Component};
 use crate::csv::models::ParseResult;
 
 #[derive(Debug, Default)]
 pub struct MainLayout {
+    activity_area_layout: ActivityAreaLayout,
     balance: f32,
-    transaction_list: TransactionList,
 }
 
 impl MainLayout {
     pub fn init(parse_result: ParseResult) -> Self {
         MainLayout {
-            transaction_list: TransactionList::init(parse_result.transactions),
+            activity_area_layout: ActivityAreaLayout::init(parse_result.transactions),
             balance: parse_result.balance,
         }
     }
@@ -29,13 +28,9 @@ impl MainLayout {
 
 impl Component for MainLayout {
     fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> () {
-        match key.code {
-            KeyCode::Down => self.transaction_list.scroll_down(),
-            KeyCode::Up => self.transaction_list.scroll_up(),
-            _ => {}
-        }
+        self.activity_area_layout.handle_key_events(key);
     }
-    fn get_layout(&mut self, frame: &mut Frame) -> Rc<[Rect]> {
+    fn get_layout(&mut self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Vertical)
             .constraints([
@@ -43,9 +38,9 @@ impl Component for MainLayout {
                 Constraint::Min(1),
                 Constraint::Length(3),
             ])
-            .split(frame.size())
+            .split(area)
     }
-    fn render(&mut self, frame: &mut Frame<'_>) {
+    fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
         let block = Block::default()
             .borders(Borders::ALL)
             .style(Style::default().fg(Color::Rgb(255, 176, 0)));
@@ -64,12 +59,12 @@ impl Component for MainLayout {
         .alignment(Alignment::Center)
         .block(block.clone());
 
-        let [title_chunk, transaction_chunk, balance_chunk] = *self.get_layout(frame) else {
+        let [title_chunk, transaction_chunk, balance_chunk] = *self.get_layout(area) else {
             panic!()
         };
 
         frame.render_widget(title, title_chunk);
-        self.transaction_list.render(frame, transaction_chunk);
+        self.activity_area_layout.render(frame, transaction_chunk);
         frame.render_widget(balance, balance_chunk)
     }
 }
