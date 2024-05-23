@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use crossterm::event::KeyCode;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -8,21 +9,32 @@ use ratatui::{
     Frame,
 };
 
-use super::Component;
+use super::{transaction_list::TransactionList, Component};
 use crate::csv::models::ParseResult;
 
 #[derive(Debug, Default)]
 pub struct MainLayout {
-    parse_result: ParseResult,
+    balance: f32,
+    transaction_list: TransactionList,
 }
 
 impl MainLayout {
     pub fn init(parse_result: ParseResult) -> Self {
-        MainLayout { parse_result }
+        MainLayout {
+            transaction_list: TransactionList::init(parse_result.transactions),
+            balance: parse_result.balance,
+        }
     }
 }
 
 impl Component for MainLayout {
+    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> () {
+        match key.code {
+            KeyCode::Down => self.transaction_list.scroll_down(),
+            KeyCode::Up => self.transaction_list.scroll_up(),
+            _ => {}
+        }
+    }
     fn get_layout(&mut self, frame: &mut Frame) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Vertical)
@@ -45,16 +57,8 @@ impl Component for MainLayout {
         .alignment(Alignment::Center)
         .block(block.clone());
 
-        let list = List::new(
-            self.parse_result
-                .transactions
-                .iter()
-                .map(|x| format!("{} - {} - {}", x.date, x.label, x.amount)),
-        )
-        .style(Style::default().fg(Color::Rgb(255, 176, 0)));
-
         let balance = Paragraph::new(Text::styled(
-            format!("Balance: {}", self.parse_result.balance),
+            format!("Balance: {}", self.balance),
             Style::default().fg(Color::Rgb(255, 176, 0)),
         ))
         .alignment(Alignment::Center)
@@ -65,7 +69,7 @@ impl Component for MainLayout {
         };
 
         frame.render_widget(title, title_chunk);
-        frame.render_widget(list, transaction_chunk);
+        self.transaction_list.render(frame, transaction_chunk);
         frame.render_widget(balance, balance_chunk)
     }
 }

@@ -9,7 +9,7 @@ use crate::ui::App;
 
 fn main() -> Result<()> {
     let parse_result = transaction_csv::parse_transaction_csv("test.csv");
-    let items = budget_csv::parse_budget_csv("budget.csv");
+    let _items = budget_csv::parse_budget_csv("budget.csv");
 
     ui::errors::install_hooks()?;
     let mut terminal = ui::wrapper::init()?;

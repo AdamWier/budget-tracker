@@ -51,6 +51,7 @@ impl App {
             KeyCode::Char('q') => self.exit(),
             _ => {}
         }
+        self.main_layout.handle_events(&event::read()?);
         Ok(())
     }
 
