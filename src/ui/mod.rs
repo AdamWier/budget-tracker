@@ -1,12 +1,12 @@
+mod components;
 pub mod errors;
 pub mod wrapper;
-mod components;
 
+use crate::csv::models::ParseResult;
 use color_eyre::eyre::{Context, Result};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::prelude::*;
 use std::io::Stdout;
-use crate::csv::models::ParseResult;
 
 use self::components::{layout::MainLayout, Component};
 
@@ -15,7 +15,7 @@ pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 #[derive(Debug, Default)]
 pub struct App {
     exit: bool,
-    parse_result: ParseResult
+    parse_result: ParseResult,
 }
 
 impl App {
@@ -40,12 +40,10 @@ impl App {
 
     fn handle_events(&mut self) -> Result<()> {
         match event::read()? {
-            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_key_event(key_event).wrap_err_with(|| {
-                    format!("handling key event failed:\n{key_event:#?}")
-                })
-            }
-            _ => Ok(())
+            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => self
+                .handle_key_event(key_event)
+                .wrap_err_with(|| format!("handling key event failed:\n{key_event:#?}")),
+            _ => Ok(()),
         }
     }
 

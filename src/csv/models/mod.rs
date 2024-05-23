@@ -8,7 +8,10 @@ pub struct Transaction {
     pub date: String,
     #[serde(rename = "Libellé")]
     pub label: String,
-    #[serde(rename = "Montant(EUROS)", deserialize_with = "deserializers::deserialize_amount")]
+    #[serde(
+        rename = "Montant(EUROS)",
+        deserialize_with = "deserializers::deserialize_amount"
+    )]
     pub amount: f32,
 }
 

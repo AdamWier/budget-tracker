@@ -24,15 +24,15 @@ impl MainLayout {
 }
 
 impl Component for MainLayout {
-    fn get_layout(&mut self, frame: &mut Frame) -> Rc<[Rect]>{
+    fn get_layout(&mut self, frame: &mut Frame) -> Rc<[Rect]> {
         Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(3),
-            Constraint::Min(1),
-            Constraint::Length(3),
-        ])
-        .split(frame.size())
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Length(3),
+                Constraint::Min(1),
+                Constraint::Length(3),
+            ])
+            .split(frame.size())
     }
     fn render(&mut self, frame: &mut Frame<'_>) {
         let block = Block::default()
@@ -61,7 +61,9 @@ impl Component for MainLayout {
         .alignment(Alignment::Center)
         .block(block.clone());
 
-        let [title_chunk, transaction_chunk, balance_chunk] = *self.get_layout(frame) else {panic!()};
+        let [title_chunk, transaction_chunk, balance_chunk] = *self.get_layout(frame) else {
+            panic!()
+        };
 
         frame.render_widget(title, title_chunk);
         frame.render_widget(list, transaction_chunk);

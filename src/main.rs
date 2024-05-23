@@ -1,13 +1,13 @@
 mod csv;
-mod utils;
 mod ui;
+mod utils;
 
 use color_eyre::eyre::Result;
-use csv::parsers::{transaction_csv, budget_csv};
+use csv::parsers::{budget_csv, transaction_csv};
 
 use crate::ui::App;
 
-fn main() -> Result<()>{
+fn main() -> Result<()> {
     let parse_result = transaction_csv::parse_transaction_csv("test.csv");
     println!("{:#?}", parse_result);
 
