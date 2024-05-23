@@ -1,4 +1,4 @@
-pub mod layout;
+pub mod main_layout;
 
 use std::rc::Rc;
 

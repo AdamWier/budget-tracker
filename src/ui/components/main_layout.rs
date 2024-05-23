@@ -11,15 +11,14 @@ use ratatui::{
 use super::Component;
 use crate::csv::models::ParseResult;
 
+#[derive(Debug, Default)]
 pub struct MainLayout {
     parse_result: ParseResult,
 }
 
 impl MainLayout {
-    pub fn init(parse_result: &ParseResult) -> Self {
-        MainLayout {
-            parse_result: parse_result.clone(),
-        }
+    pub fn init(parse_result: ParseResult) -> Self {
+        MainLayout { parse_result }
     }
 }
 
