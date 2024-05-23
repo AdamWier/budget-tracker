@@ -1,11 +1,8 @@
 use std::rc::Rc;
 
-use crossterm::event::KeyCode;
+use crossterm::event::{Event, KeyCode};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
-    text::Text,
-    widgets::{Block, Borders, Paragraph},
     Frame,
 };
 
@@ -27,12 +24,8 @@ impl ActivityAreaLayout {
 }
 
 impl Component for ActivityAreaLayout {
-    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> () {
-        match key.code {
-            KeyCode::Down => self.transaction_list.scroll_down(),
-            KeyCode::Up => self.transaction_list.scroll_up(),
-            _ => {}
-        }
+    fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
+        self.transaction_list.handle_events(event)
     }
     fn get_layout(&mut self, area: Rect) -> Rc<[Rect]> {
         Layout::default()

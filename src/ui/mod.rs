@@ -38,12 +38,15 @@ impl App {
     }
 
     fn handle_events(&mut self) -> Result<()> {
-        match event::read()? {
+        let event = event::read()?;
+        match event {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => self
                 .handle_key_event(key_event)
                 .wrap_err_with(|| format!("handling key event failed:\n{key_event:#?}")),
             _ => Ok(()),
-        }
+        }?;
+        self.main_layout.handle_events(&event)?;
+        Ok(())
     }
 
     pub fn handle_key_event(&mut self, key_event: KeyEvent) -> Result<()> {
@@ -51,7 +54,6 @@ impl App {
             KeyCode::Char('q') => self.exit(),
             _ => {}
         }
-        self.main_layout.handle_events(&event::read()?);
         Ok(())
     }
 

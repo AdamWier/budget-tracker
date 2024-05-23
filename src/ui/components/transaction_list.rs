@@ -1,3 +1,4 @@
+use crossterm::event::KeyCode;
 use ratatui::{
     layout::Rect,
     style::{Color, Style},
@@ -6,6 +7,8 @@ use ratatui::{
 };
 
 use crate::csv::models::Transaction;
+
+use super::Component;
 
 #[derive(Debug, Default)]
 pub struct TransactionList {
@@ -38,7 +41,17 @@ impl TransactionList {
         };
         *self.transaction_list_state.offset_mut() = new_offset;
     }
-    pub fn render(&mut self, frame: &mut Frame<'_>, transaction_chunk: Rect) {
+}
+
+impl Component for TransactionList {
+    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> () {
+        match key.code {
+            KeyCode::Down => self.scroll_down(),
+            KeyCode::Up => self.scroll_up(),
+            _ => {}
+        }
+    }
+    fn render(&mut self, frame: &mut Frame<'_>, transaction_chunk: Rect) {
         self.transaction_list_lines = transaction_chunk.rows().count();
 
         let list = List::new(

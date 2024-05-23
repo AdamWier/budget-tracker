@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use crossterm::event::Event;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -27,6 +28,9 @@ impl MainLayout {
 }
 
 impl Component for MainLayout {
+    fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
+        self.activity_area_layout.handle_events(event)
+    }
     fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> () {
         self.activity_area_layout.handle_key_events(key);
     }
