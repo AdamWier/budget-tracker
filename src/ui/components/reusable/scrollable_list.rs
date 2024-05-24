@@ -6,7 +6,7 @@ use ratatui::{
     Frame,
 };
 
-use super::Component;
+use crate::ui::components::Component;
 
 #[derive(Debug)]
 pub struct ScrollableList {

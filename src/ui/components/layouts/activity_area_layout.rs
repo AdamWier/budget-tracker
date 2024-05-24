@@ -6,9 +6,10 @@ use ratatui::{
     Frame,
 };
 
-use crate::csv::models::{BudgetItem, Transaction};
-
-use super::{scrollable_list::ScrollableList, Component};
+use crate::{
+    csv::models::{BudgetItem, Transaction},
+    ui::components::{reusable::scrollable_list::ScrollableList, Component},
+};
 
 #[derive(Debug)]
 pub struct ActivityAreaLayout {

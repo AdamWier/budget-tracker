@@ -9,8 +9,11 @@ use ratatui::{
     Frame,
 };
 
-use super::{activity_area_layout::ActivityAreaLayout, Component};
-use crate::csv::models::{BudgetItem, ParseResult};
+use super::activity_area_layout::ActivityAreaLayout;
+use crate::{
+    csv::models::{BudgetItem, ParseResult},
+    ui::components::Component,
+};
 
 #[derive(Debug)]
 pub struct MainLayout {

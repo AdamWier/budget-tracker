@@ -1,6 +1,5 @@
-mod activity_area_layout;
-pub mod main_layout;
-mod scrollable_list;
+pub mod layouts;
+mod reusable;
 
 use std::rc::Rc;
 

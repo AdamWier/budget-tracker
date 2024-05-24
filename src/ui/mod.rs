@@ -8,7 +8,7 @@ use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::prelude::*;
 use std::io::Stdout;
 
-use self::components::{main_layout::MainLayout, Component};
+use self::components::{layouts::main_layout::MainLayout, Component};
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
