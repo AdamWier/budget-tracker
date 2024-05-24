@@ -28,7 +28,7 @@ impl ScrollableList {
         }
     }
     pub fn scroll_down(&mut self) {
-        let transaction_list_max = self.list_items.len() - self.list_screen_lines;
+        let transaction_list_max = self.list_items.len().saturating_sub(self.list_screen_lines);
         let new_offset = *self.list_state.offset_mut() + 1usize;
         *self.list_state.offset_mut() = if new_offset <= transaction_list_max {
             new_offset
@@ -56,6 +56,8 @@ impl Component for ScrollableList {
         }
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
+        self.list_screen_lines = area.rows().count().saturating_sub(4);
+
         let block = Block::default()
             .borders(Borders::ALL)
             .style(Style::default().fg(Color::Rgb(255, 176, 0)));
