@@ -27,7 +27,7 @@ pub trait Component {
         self.handle_child_events(event)
     }
     #[allow(unused_variables)]
-    fn handle_key_events(&mut self, key: &KeyEvent) -> () {}
+    fn handle_key_events(&mut self, key: &KeyEvent) {}
     #[allow(unused_variables)]
-    fn handle_mouse_events(&mut self, mouse: &MouseEvent) -> () {}
+    fn handle_mouse_events(&mut self, mouse: &MouseEvent) {}
 }

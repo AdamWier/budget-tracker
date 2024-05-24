@@ -47,7 +47,7 @@ impl ScrollableList {
 }
 
 impl Component for ScrollableList {
-    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> () {
+    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) {
         let code = key.code;
         match code {
             _ if code == self.down_button => self.scroll_down(),
