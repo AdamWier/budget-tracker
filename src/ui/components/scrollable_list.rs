@@ -2,7 +2,7 @@ use crossterm::event::KeyCode;
 use ratatui::{
     layout::Rect,
     style::{Color, Style},
-    widgets::{List, ListState},
+    widgets::{Block, Borders, List, ListState},
     Frame,
 };
 
@@ -56,12 +56,17 @@ impl Component for ScrollableList {
         }
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .style(Style::default().fg(Color::Rgb(255, 176, 0)));
+
         let [chunk] = *self.get_layout(area) else {
             panic!()
         };
 
         let list = List::new(self.list_items.to_owned())
-            .style(Style::default().fg(Color::Rgb(255, 176, 0)));
+            .style(Style::default().fg(Color::Rgb(255, 176, 0)))
+            .block(block);
 
         frame.render_stateful_widget(list, chunk, &mut self.list_state);
     }

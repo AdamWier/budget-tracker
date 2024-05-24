@@ -49,7 +49,7 @@ impl Component for ActivityAreaLayout {
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(75), Constraint::Percentage(25)])
+            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
             .split(area)
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
