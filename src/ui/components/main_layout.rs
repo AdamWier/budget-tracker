@@ -31,9 +31,6 @@ impl Component for MainLayout {
     fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
         self.activity_area_layout.handle_events(event)
     }
-    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> () {
-        self.activity_area_layout.handle_key_events(key);
-    }
     fn get_layout(&mut self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Vertical)
