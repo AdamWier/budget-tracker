@@ -1,6 +1,6 @@
 mod activity_area_layout;
 pub mod main_layout;
-mod transaction_list;
+mod scrollable_list;
 
 use std::rc::Rc;
 
@@ -10,7 +10,7 @@ use ratatui::{layout::Rect, Frame};
 
 pub trait Component {
     fn render(&mut self, f: &mut Frame, area: Rect);
-    fn get_layout(&mut self, area: Rect) -> Rc<[Rect]> {
+    fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         [area].into()
     }
     #[allow(unused_variables)]

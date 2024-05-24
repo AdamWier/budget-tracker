@@ -12,7 +12,7 @@ use ratatui::{
 use super::{activity_area_layout::ActivityAreaLayout, Component};
 use crate::csv::models::ParseResult;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct MainLayout {
     activity_area_layout: ActivityAreaLayout,
     balance: f32,
@@ -31,7 +31,7 @@ impl Component for MainLayout {
     fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
         self.activity_area_layout.handle_events(event)
     }
-    fn get_layout(&mut self, area: Rect) -> Rc<[Rect]> {
+    fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Vertical)
             .constraints([

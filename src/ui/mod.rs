@@ -12,7 +12,7 @@ use self::components::{main_layout::MainLayout, Component};
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct App {
     exit: bool,
     main_layout: MainLayout,
@@ -22,7 +22,7 @@ impl App {
     pub fn new(parse_result: ParseResult) -> App {
         App {
             main_layout: MainLayout::init(parse_result),
-            ..Default::default()
+            exit: false,
         }
     }
     pub fn run(&mut self, terminal: &mut Tui) -> Result<()> {
