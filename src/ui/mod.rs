@@ -2,7 +2,7 @@ mod components;
 pub mod errors;
 pub mod wrapper;
 
-use crate::csv::models::ParseResult;
+use crate::csv::models::{BudgetItem, ParseResult};
 use color_eyre::eyre::{Context, Result};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::prelude::*;
@@ -19,9 +19,9 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(parse_result: ParseResult) -> App {
+    pub fn new(parse_result: ParseResult, budget_items: Vec<BudgetItem>) -> App {
         App {
-            main_layout: MainLayout::init(parse_result),
+            main_layout: MainLayout::init(parse_result, budget_items),
             exit: false,
         }
     }

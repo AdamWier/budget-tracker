@@ -24,6 +24,6 @@ pub struct ParseResult {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct BudgetItem {
-    label: String,
-    amount: f32,
+    pub label: String,
+    pub amount: f32,
 }

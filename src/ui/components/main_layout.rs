@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use super::{activity_area_layout::ActivityAreaLayout, Component};
-use crate::csv::models::ParseResult;
+use crate::csv::models::{BudgetItem, ParseResult};
 
 #[derive(Debug)]
 pub struct MainLayout {
@@ -19,9 +19,9 @@ pub struct MainLayout {
 }
 
 impl MainLayout {
-    pub fn init(parse_result: ParseResult) -> Self {
+    pub fn init(parse_result: ParseResult, budget_items: Vec<BudgetItem>) -> Self {
         MainLayout {
-            activity_area_layout: ActivityAreaLayout::init(parse_result.transactions),
+            activity_area_layout: ActivityAreaLayout::init(parse_result.transactions, budget_items),
             balance: parse_result.balance,
         }
     }
