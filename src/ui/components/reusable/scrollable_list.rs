@@ -1,3 +1,4 @@
+use color_eyre::eyre::Result;
 use crossterm::event::KeyCode;
 use ratatui::{
     layout::Rect,
@@ -27,7 +28,7 @@ impl ScrollableList {
             list_screen_lines: 0,
         }
     }
-    pub fn scroll_down(&mut self) {
+    pub fn scroll_down(&mut self) -> Result<()> {
         let transaction_list_max = self.list_items.len().saturating_sub(self.list_screen_lines);
         let new_offset = *self.list_state.offset_mut() + 1usize;
         *self.list_state.offset_mut() = if new_offset <= transaction_list_max {
@@ -35,24 +36,26 @@ impl ScrollableList {
         } else {
             transaction_list_max
         };
+        Ok(())
     }
-    pub fn scroll_up(&mut self) {
+    pub fn scroll_up(&mut self) -> Result<()> {
         let new_offset = if self.list_state.offset() == 0usize {
             0
         } else {
             self.list_state.offset() - 1usize
         };
         *self.list_state.offset_mut() = new_offset;
+        Ok(())
     }
 }
 
 impl Component for ScrollableList {
-    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) {
+    fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> Result<()> {
         let code = key.code;
         match code {
             _ if code == self.down_button => self.scroll_down(),
             _ if code == self.up_button => self.scroll_up(),
-            _ => {}
+            _ => Ok(()),
         }
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
