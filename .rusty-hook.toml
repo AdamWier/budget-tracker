@@ -1,6 +1,6 @@
 [hooks]
-pre-commit = "cargo clippy"
-pre-push = "cargo test"
+pre-commit = "cargo fmt"
+pre-push = "cargo test && cargo clippy" 
 
 [logging]
 verbose = true
