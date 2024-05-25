@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
-use crossterm::event::{Event, KeyCode};
+use color_eyre::eyre::Result;
+use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     Frame,
@@ -40,10 +41,22 @@ impl ActivityAreaLayout {
             ),
         }
     }
+    fn assign_item(&self) {
+        let transaction_item = self.transaction_list.get_selected_item();
+        let budget_item = self.budget_list.get_selected_item();
+        println!("{} assigned to {}", transaction_item, budget_item)
+    }
 }
 
 impl Component for ActivityAreaLayout {
-    fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
+    fn handle_key_events(&mut self, key_event: &KeyEvent) -> Result<()> {
+        match key_event.code {
+            KeyCode::Enter => self.assign_item(),
+            _ => {}
+        }
+        Ok(())
+    }
+    fn handle_child_events(&mut self, event: &Event) -> Result<()> {
         self.transaction_list.handle_events(event)?;
         self.budget_list.handle_events(event)
     }
