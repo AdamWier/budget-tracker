@@ -52,7 +52,13 @@ impl ActivityAreaLayout {
     fn assign_item(&mut self) {
         let transaction_item = self.transaction_list.get_selected_item();
         let budget_item = self.budget_list.get_selected_item();
-        persist_association(budget_item, transaction_item);
+        if budget_item.is_none() || transaction_item.is_none() {
+            return;
+        }
+        persist_association(
+            budget_item.unwrap().as_ref(),
+            transaction_item.unwrap().as_ref(),
+        );
         self.show_popup = true;
         self.transaction_list.remove_selected_item();
     }
