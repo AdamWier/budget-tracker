@@ -4,6 +4,7 @@ use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
+    style::Color,
     Frame,
 };
 
@@ -12,13 +13,18 @@ use crate::{
         models::{list_item::ListItem, BudgetItem, Transaction},
         persister::persist_association,
     },
-    ui::components::{reusable::scrollable_list::ScrollableList, Component},
+    ui::components::{
+        reusable::{popup::Popup, scrollable_list::ScrollableList},
+        Component,
+    },
 };
 
 #[derive(Debug)]
 pub struct ActivityAreaLayout {
     transaction_list: ScrollableList,
     budget_list: ScrollableList,
+    popup: Popup,
+    show_popup: bool,
 }
 
 impl ActivityAreaLayout {
@@ -39,26 +45,36 @@ impl ActivityAreaLayout {
                 KeyCode::Char('8'),
                 KeyCode::Char('2'),
             ),
+            show_popup: false,
+            popup: Popup::init("SAVED".to_string(), Color::Green),
         }
     }
-    fn assign_item(&self) {
+    fn assign_item(&mut self) {
         let transaction_item = self.transaction_list.get_selected_item();
         let budget_item = self.budget_list.get_selected_item();
         persist_association(budget_item, transaction_item);
+        self.show_popup = true;
+    }
+    fn handle_enter_key(&mut self) {
+        match self.show_popup {
+            true => self.show_popup = false,
+            false => self.assign_item(),
+        }
     }
 }
 
 impl Component for ActivityAreaLayout {
     fn handle_key_events(&mut self, key_event: &KeyEvent) -> Result<()> {
         match key_event.code {
-            KeyCode::Enter => self.assign_item(),
+            KeyCode::Enter => self.handle_enter_key(),
             _ => {}
         }
         Ok(())
     }
     fn handle_child_events(&mut self, event: &Event) -> Result<()> {
         self.transaction_list.handle_events(event)?;
-        self.budget_list.handle_events(event)
+        self.budget_list.handle_events(event)?;
+        self.popup.handle_events(event)
     }
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
@@ -70,7 +86,11 @@ impl Component for ActivityAreaLayout {
         let [transaction_chunk, budget_chunk] = *self.get_layout(area) else {
             panic!()
         };
-        self.budget_list.render(frame, budget_chunk);
-        self.transaction_list.render(frame, transaction_chunk);
+        if self.show_popup {
+            self.popup.render(frame, area)
+        } else {
+            self.budget_list.render(frame, budget_chunk);
+            self.transaction_list.render(frame, transaction_chunk);
+        }
     }
 }
