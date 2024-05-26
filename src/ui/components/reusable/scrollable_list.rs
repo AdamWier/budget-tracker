@@ -9,11 +9,11 @@ use ratatui::{
     Frame,
 };
 
-use crate::ui::components::Component;
+use crate::{csv::models::list_item::ListItem, ui::components::Component};
 
 #[derive(Debug)]
 pub struct ScrollableList {
-    list_items: Vec<String>,
+    list_items: Vec<Box<dyn ListItem>>,
     list_state: ListState,
     list_screen_lines: usize,
     down_button: KeyCode,
@@ -21,7 +21,11 @@ pub struct ScrollableList {
 }
 
 impl ScrollableList {
-    pub fn init(list_items: Vec<String>, up_button: KeyCode, down_button: KeyCode) -> Self {
+    pub fn init(
+        list_items: Vec<Box<dyn ListItem>>,
+        up_button: KeyCode,
+        down_button: KeyCode,
+    ) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
 
@@ -33,7 +37,7 @@ impl ScrollableList {
             list_screen_lines: 0,
         }
     }
-    pub fn get_selected_item(&self) -> &String {
+    pub fn get_selected_item(&self) -> &Box<dyn ListItem> {
         let selected_index = self.list_state.selected().expect("No selected value");
         self.list_items
             .get(selected_index)
@@ -99,7 +103,7 @@ impl Component for ScrollableList {
             panic!()
         };
 
-        let list = List::new(self.list_items.to_owned())
+        let list = List::new(self.list_items.iter().map(|item| item.get_list_label()))
             .style(Style::default().fg(Color::Rgb(255, 176, 0)))
             .block(block)
             .highlight_style(Style::default().add_modifier(Modifier::REVERSED));

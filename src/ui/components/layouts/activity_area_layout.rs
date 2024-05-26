@@ -8,7 +8,7 @@ use ratatui::{
 };
 
 use crate::{
-    csv::models::{BudgetItem, Transaction},
+    csv::models::{list_item::ListItem, BudgetItem, Transaction},
     ui::components::{reusable::scrollable_list::ScrollableList, Component},
 };
 
@@ -20,22 +20,19 @@ pub struct ActivityAreaLayout {
 
 impl ActivityAreaLayout {
     pub fn init(transactions: Vec<Transaction>, budget_items: Vec<BudgetItem>) -> Self {
-        let transaction_list_items: Vec<String> = transactions
-            .iter()
-            .map(|x| format!("{} - {} - {}", x.date, x.label, x.amount))
-            .collect();
-        let budget_list_items: Vec<String> = budget_items
-            .iter()
-            .map(|x| format!("{} - {}", x.label, x.amount))
-            .collect();
+        let mut boxed_transactions = Vec::new();
+        for item in transactions.into_iter() {
+            boxed_transactions.push(Box::new(item) as Box<dyn ListItem>)
+        }
+
+        let mut boxed_budget_items = Vec::new();
+        for item in budget_items.into_iter() {
+            boxed_budget_items.push(Box::new(item) as Box<dyn ListItem>)
+        }
         ActivityAreaLayout {
-            transaction_list: ScrollableList::init(
-                transaction_list_items,
-                KeyCode::Up,
-                KeyCode::Down,
-            ),
+            transaction_list: ScrollableList::init(boxed_transactions, KeyCode::Up, KeyCode::Down),
             budget_list: ScrollableList::init(
-                budget_list_items,
+                boxed_budget_items,
                 KeyCode::Char('8'),
                 KeyCode::Char('2'),
             ),
@@ -44,7 +41,11 @@ impl ActivityAreaLayout {
     fn assign_item(&self) {
         let transaction_item = self.transaction_list.get_selected_item();
         let budget_item = self.budget_list.get_selected_item();
-        println!("{} assigned to {}", transaction_item, budget_item)
+        println!(
+            "{} assigned to {}",
+            transaction_item.get_list_label(),
+            budget_item.get_list_label()
+        )
     }
 }
 
