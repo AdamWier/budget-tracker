@@ -4,6 +4,7 @@ use ratatui::text::Text;
 
 pub trait ListItem {
     fn get_list_label(&self) -> Text;
+    fn get_savable_value(&self) -> Vec<String>;
 }
 
 impl Debug for dyn ListItem {

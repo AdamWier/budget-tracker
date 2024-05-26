@@ -8,7 +8,10 @@ use ratatui::{
 };
 
 use crate::{
-    csv::models::{list_item::ListItem, BudgetItem, Transaction},
+    csv::{
+        models::{list_item::ListItem, BudgetItem, Transaction},
+        persister::persist_association,
+    },
     ui::components::{reusable::scrollable_list::ScrollableList, Component},
 };
 
@@ -41,11 +44,7 @@ impl ActivityAreaLayout {
     fn assign_item(&self) {
         let transaction_item = self.transaction_list.get_selected_item();
         let budget_item = self.budget_list.get_selected_item();
-        println!(
-            "{} assigned to {}",
-            transaction_item.get_list_label(),
-            budget_item.get_list_label()
-        )
+        persist_association(budget_item, transaction_item);
     }
 }
 
