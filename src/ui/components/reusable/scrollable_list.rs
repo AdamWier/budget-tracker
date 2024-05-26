@@ -37,11 +37,12 @@ impl ScrollableList {
             list_screen_lines: 0,
         }
     }
-    pub fn get_selected_item(&self) -> &Box<dyn ListItem> {
+    pub fn get_selected_item(&self) -> &dyn ListItem {
         let selected_index = self.list_state.selected().expect("No selected value");
         self.list_items
             .get(selected_index)
             .expect("No selected item")
+            .as_ref()
     }
     fn scroll_down(&mut self) -> Result<()> {
         let transaction_list_max = self.list_items.len().saturating_sub(self.list_screen_lines);
