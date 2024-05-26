@@ -55,10 +55,7 @@ impl ActivityAreaLayout {
         if budget_item.is_none() || transaction_item.is_none() {
             return;
         }
-        persist_association(
-            budget_item.unwrap().as_ref(),
-            transaction_item.unwrap().as_ref(),
-        );
+        persist_association(budget_item.unwrap(), transaction_item.unwrap());
         self.show_popup = true;
         self.transaction_list.remove_selected_item();
     }

@@ -37,10 +37,10 @@ impl ScrollableList {
             list_screen_lines: 0,
         }
     }
-    pub fn get_selected_item(&self) -> Option<&Box<dyn ListItem>> {
+    pub fn get_selected_item(&self) -> Option<&dyn ListItem> {
         self.list_state
             .selected()
-            .and_then(|x| self.list_items.get(x))
+            .and_then(|x| Some(self.list_items.get(x)?.as_ref()))
     }
     fn scroll_down(&mut self) -> Result<()> {
         let transaction_list_max = self.list_items.len().saturating_sub(self.list_screen_lines);
@@ -111,19 +111,19 @@ impl Component for ScrollableList {
             panic!()
         };
 
-        if self.list_items.iter().count() > 0 {
+        if self.list_items.is_empty() {
+            let paragraph = Paragraph::new("The list is empty")
+                .style(Style::default().fg(Color::Rgb(255, 176, 0)))
+                .alignment(Alignment::Center)
+                .block(block);
+            frame.render_widget(paragraph, chunk)
+        } else {
             let list = List::new(self.list_items.iter().map(|item| item.get_list_label()))
                 .style(Style::default().fg(Color::Rgb(255, 176, 0)))
                 .block(block)
                 .highlight_style(Style::default().add_modifier(Modifier::REVERSED));
 
             frame.render_stateful_widget(list, chunk, &mut self.list_state);
-        } else {
-            let paragraph = Paragraph::new("The list is empty")
-                .style(Style::default().fg(Color::Rgb(255, 176, 0)))
-                .alignment(Alignment::Center)
-                .block(block);
-            frame.render_widget(paragraph, chunk)
         }
     }
 }

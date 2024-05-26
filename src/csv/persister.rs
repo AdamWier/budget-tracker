@@ -17,7 +17,6 @@ fn create_record<T: ListItem + ?Sized>(transaction: &T, budget_item: &T) -> Vec<
 
 fn append_to_file(path: &str, record: &Vec<String>) {
     let file = OpenOptions::new()
-        .write(true)
         .create(true)
         .append(true)
         .open(path)
