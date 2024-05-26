@@ -82,6 +82,15 @@ impl ScrollableList {
 
         Ok(())
     }
+    pub fn remove_selected_item(&mut self) {
+        let selected_item = self.get_selected_item();
+        let index = self
+            .list_items
+            .iter()
+            .position(|x| x.get_savable_value() == selected_item.get_savable_value())
+            .expect("Item was not found");
+        self.list_items.remove(index);
+    }
 }
 
 impl Component for ScrollableList {

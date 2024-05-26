@@ -54,6 +54,7 @@ impl ActivityAreaLayout {
         let budget_item = self.budget_list.get_selected_item();
         persist_association(budget_item, transaction_item);
         self.show_popup = true;
+        self.transaction_list.remove_selected_item();
     }
     fn handle_enter_key(&mut self) {
         match self.show_popup {
