@@ -1,29 +1,13 @@
+mod budget_item;
 mod deserializers;
+pub mod list_item;
+mod transaction;
 
-use serde::Deserialize;
-
-#[derive(Debug, Deserialize, Clone)]
-#[serde(rename_all = "PascalCase")]
-pub struct Transaction {
-    pub date: String,
-    #[serde(rename = "Libellé")]
-    pub label: String,
-    #[serde(
-        rename = "Montant(EUROS)",
-        deserialize_with = "deserializers::deserialize_amount"
-    )]
-    pub amount: f32,
-}
+pub use budget_item::BudgetItem;
+pub use transaction::Transaction;
 
 #[derive(Debug, Default, Clone)]
 pub struct ParseResult {
     pub transactions: Vec<Transaction>,
     pub balance: f32,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct BudgetItem {
-    pub label: String,
-    pub amount: f32,
 }
