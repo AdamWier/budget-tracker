@@ -1,6 +1,7 @@
 use ratatui::text::Text;
 use serde::Deserialize;
 
+use super::comparable_transaction::ComparableTransaction;
 use super::deserializers;
 use super::list_item::ListItem;
 
@@ -27,5 +28,16 @@ impl ListItem for Transaction {
             self.label.to_string(),
             self.amount.to_string(),
         ]
+    }
+}
+
+impl ComparableTransaction for Transaction {
+    fn get_comparable_value(&self) -> String {
+        [
+            self.date.to_string(),
+            self.label.to_string(),
+            self.amount.to_string(),
+        ]
+        .join("")
     }
 }
