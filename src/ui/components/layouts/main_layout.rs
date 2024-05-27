@@ -9,7 +9,9 @@ use ratatui::{
     Frame,
 };
 
-use super::transaction_assignment_layout::TransactionAssignmentLayout;
+use super::{
+    totals_layout::TotalsLayout, transaction_assignment_layout::TransactionAssignmentLayout,
+};
 use crate::{
     csv::models::{BudgetItem, ParseResult},
     ui::components::{reusable::tabs::TabsManager, Component},
@@ -18,6 +20,7 @@ use crate::{
 #[derive(Debug)]
 pub struct MainLayout {
     transaction_assignment_layout: TransactionAssignmentLayout,
+    totals_layout: TotalsLayout,
     balance: f32,
     tabs_manager: TabsManager,
 }
@@ -31,6 +34,7 @@ impl MainLayout {
                 parse_result.transactions,
                 budget_items,
             ),
+            totals_layout: TotalsLayout::init(),
             balance: parse_result.balance,
             tabs_manager: TabsManager::init(tabs.to_vec().into_iter().map(String::from).collect()),
         }
@@ -84,13 +88,16 @@ impl Component for MainLayout {
             panic!()
         };
 
-        let page_to_render = match self.tabs_manager.selected_tab_index {
-            0 => &mut self.transaction_assignment_layout,
-            _ => &mut self.transaction_assignment_layout,
-        };
+        if self.tabs_manager.selected_tab_index == 0 {
+            self.transaction_assignment_layout
+                .render(frame, transaction_chunk);
+        }
+        if self.tabs_manager.selected_tab_index == 1 {
+            self.totals_layout.render(frame, transaction_chunk);
+        }
 
         frame.render_widget(title, title_chunk);
-        page_to_render.render(frame, transaction_chunk);
+        // page_to_render.render(frame, transaction_chunk);
         self.tabs_manager.render(frame, tabs_chunk);
         frame.render_widget(balance, balance_chunk)
     }
