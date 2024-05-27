@@ -32,9 +32,9 @@ impl MainLayout {
         MainLayout {
             transaction_assignment_layout: TransactionAssignmentLayout::init(
                 parse_result.transactions,
-                budget_items,
+                budget_items.clone(),
             ),
-            totals_layout: TotalsLayout::init(),
+            totals_layout: TotalsLayout::init(budget_items.clone()),
             balance: parse_result.balance,
             tabs_manager: TabsManager::init(tabs.to_vec().into_iter().map(String::from).collect()),
         }
