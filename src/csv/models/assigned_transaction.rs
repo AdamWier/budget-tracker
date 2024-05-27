@@ -1,9 +1,8 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use super::comparable_transaction::ComparableTransaction;
 
-#[derive(Debug, Deserialize, Clone, PartialEq, Serialize)]
-#[serde(rename_all = "PascalCase")]
+#[derive(Debug, Deserialize)]
 pub struct AssignedTransaction {
     pub code: String,
     pub date: String,
