@@ -30,13 +30,14 @@ impl TotalsLayout {
             budget_items,
         }
     }
-    fn get_code_total_pairs(&self) -> Vec<(String, f32)> {
-        let codes_to_total: Vec<String> = self
+    fn get_code_total_pairs(&self) -> Vec<(String, f32, f32)> {
+        let budget_items_to_total = self
             .budget_items
+            .iter()
+            .filter(|x| x.setting == BudgetItemType::MULTI);
+        let codes_to_total: Vec<String> = budget_items_to_total
             .clone()
-            .into_iter()
-            .filter(|x| x.setting == BudgetItemType::MULTI)
-            .map(|x| x.code)
+            .map(|x| x.code.to_string())
             .collect();
         let assigned_transactions = parse_assigned_transactions_csv("assigned_transactions.csv")
             .into_iter()
@@ -44,19 +45,27 @@ impl TotalsLayout {
         let assigned_transactions_by_code = &assigned_transactions
             .into_iter()
             .chunk_by(|x| x.code.clone());
-        let mut code_total_pairs: Vec<(String, f32)> = Vec::new();
+        let mut total_information: Vec<(String, f32, f32)> = Vec::new();
         for (key, chunk) in assigned_transactions_by_code {
+            let budget_item = budget_items_to_total
+                .clone()
+                .find(|x| x.code == key)
+                .unwrap();
             let total = chunk
                 .collect::<Vec<AssignedTransaction>>()
                 .into_iter()
                 .fold(0f32, |accu, transaction| accu + transaction.amount);
-            code_total_pairs.push((key, total))
+            total_information.push((
+                budget_item.label.to_string(),
+                total.mul_add(-1.0, 0.0),
+                budget_item.amount,
+            ))
         }
-        code_total_pairs
+        total_information
     }
 }
 
-impl<'a> Component for TotalsLayout {
+impl Component for TotalsLayout {
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         let size_for_each = 100_u16.saturating_div(self.sections);
         let mut constraints: Vec<Constraint> = Vec::new();
@@ -72,9 +81,9 @@ impl<'a> Component for TotalsLayout {
         let paragraphs = self
             .get_code_total_pairs()
             .iter()
-            .map(|(code, total)| {
+            .map(|(code, total, amount)| {
                 Paragraph::new(Text::styled(
-                    format!("{}: {}", code, total),
+                    format!("{}: {}/{}", code, total, amount),
                     Style::default().fg(Color::Rgb(255, 176, 0)),
                 ))
                 .alignment(Alignment::Center)
