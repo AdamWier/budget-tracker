@@ -21,4 +21,11 @@ impl ListItem for Transaction {
     fn get_list_label(&self) -> ratatui::prelude::Text {
         Text::raw(format!("{} - {} - {}", self.date, self.label, self.amount))
     }
+    fn get_savable_value(&self) -> Vec<String> {
+        vec![
+            self.date.to_string(),
+            self.label.to_string(),
+            self.amount.to_string(),
+        ]
+    }
 }
