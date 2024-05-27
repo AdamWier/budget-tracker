@@ -9,7 +9,7 @@ use ratatui::{
     Frame,
 };
 
-use super::activity_area_layout::ActivityAreaLayout;
+use super::transaction_assignment_layout::TransactionAssignmentLayout;
 use crate::{
     csv::models::{BudgetItem, ParseResult},
     ui::components::{reusable::tabs::TabsManager, Component},
@@ -17,7 +17,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct MainLayout {
-    activity_area_layout: ActivityAreaLayout,
+    transaction_assignment_layout: TransactionAssignmentLayout,
     balance: f32,
     tabs_manager: TabsManager,
 }
@@ -27,7 +27,10 @@ impl MainLayout {
         let tabs = ["Sorter", "Totals"];
 
         MainLayout {
-            activity_area_layout: ActivityAreaLayout::init(parse_result.transactions, budget_items),
+            transaction_assignment_layout: TransactionAssignmentLayout::init(
+                parse_result.transactions,
+                budget_items,
+            ),
             balance: parse_result.balance,
             tabs_manager: TabsManager::init(tabs.to_vec().into_iter().map(String::from).collect()),
         }
@@ -42,7 +45,7 @@ impl MainLayout {
 
 impl Component for MainLayout {
     fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
-        self.activity_area_layout.handle_events(event)?;
+        self.transaction_assignment_layout.handle_events(event)?;
         self.tabs_manager.handle_events(event)
     }
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
@@ -82,8 +85,8 @@ impl Component for MainLayout {
         };
 
         let page_to_render = match self.tabs_manager.selected_tab_index {
-            0 => &mut self.activity_area_layout,
-            _ => &mut self.activity_area_layout,
+            0 => &mut self.transaction_assignment_layout,
+            _ => &mut self.transaction_assignment_layout,
         };
 
         frame.render_widget(title, title_chunk);

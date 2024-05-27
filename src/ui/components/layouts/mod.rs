@@ -1,2 +1,2 @@
-mod activity_area_layout;
 pub mod main_layout;
+mod transaction_assignment_layout;
