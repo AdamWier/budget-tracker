@@ -67,6 +67,7 @@ impl TransactionAssignmentLayout {
     }
 }
 
+#[allow(clippy::single_match)]
 impl Component for TransactionAssignmentLayout {
     fn handle_key_events(&mut self, key_event: &KeyEvent) -> Result<()> {
         match key_event.code {

@@ -2,7 +2,7 @@ use crate::csv::models::{AssignedTransaction, ComparableTransaction, Transaction
 
 pub fn remove_already_processed_items(
     transactions: &mut Vec<Transaction>,
-    assigned_transactions: &Vec<AssignedTransaction>,
+    assigned_transactions: &[AssignedTransaction],
 ) {
     transactions.retain(|x| {
         !assigned_transactions

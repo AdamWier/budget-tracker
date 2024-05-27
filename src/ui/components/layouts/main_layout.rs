@@ -36,7 +36,7 @@ impl MainLayout {
             ),
             totals_layout: TotalsLayout::init(budget_items.clone()),
             balance: parse_result.balance,
-            tabs_manager: TabsManager::init(tabs.to_vec().into_iter().map(String::from).collect()),
+            tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
         }
     }
     fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {

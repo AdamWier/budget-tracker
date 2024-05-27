@@ -8,7 +8,7 @@ pub fn add_spending_money(items: &mut Vec<BudgetItem>) {
         .iter()
         .position(|x| x.code == "SAL")
         .and_then(|x| items.get(x))
-        .and_then(|x| Some(x.amount))
+        .map(|x| x.amount)
         .unwrap_or(0.0);
     let spending_money = salary - total_expenses;
     items.push(BudgetItem {

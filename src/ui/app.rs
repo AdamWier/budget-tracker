@@ -14,6 +14,7 @@ pub struct App {
     main_layout: MainLayout,
 }
 
+#[allow(clippy::single_match)]
 impl App {
     pub fn new(parse_result: ParseResult, budget_items: Vec<BudgetItem>) -> App {
         App {
