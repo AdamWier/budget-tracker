@@ -33,7 +33,7 @@ impl ListItem for Transaction {
 
 impl ComparableTransaction for Transaction {
     fn get_comparable_value(&self) -> String {
-        vec![
+        [
             self.date.to_string(),
             self.label.to_string(),
             self.amount.to_string(),

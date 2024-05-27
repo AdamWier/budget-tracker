@@ -13,7 +13,7 @@ pub struct AssignedTransaction {
 
 impl ComparableTransaction for AssignedTransaction {
     fn get_comparable_value(&self) -> String {
-        vec![
+        [
             self.date.to_string(),
             self.label.to_string(),
             self.amount.to_string(),
