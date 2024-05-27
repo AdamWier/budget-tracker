@@ -35,7 +35,7 @@ impl TransactionAssignmentLayout {
         }
 
         let mut boxed_budget_items = Vec::new();
-        for item in budget_items.into_iter() {
+        for item in budget_items.into_iter().filter(|x| x.code != "SAL") {
             boxed_budget_items.push(Box::new(item) as Box<dyn ListItem>)
         }
         TransactionAssignmentLayout {
