@@ -81,7 +81,7 @@ impl Component for BalanceLayout {
         let projected_balance = self.get_projected_balance();
 
         let projected_balance_paragraph = Paragraph::new(Text::styled(
-            format!("Balance: {}", projected_balance),
+            format!("Projected balance: {}", projected_balance),
             Style::default().fg(Color::Rgb(255, 176, 0)),
         ))
         .alignment(Alignment::Center)

@@ -54,7 +54,7 @@ impl MainLayout {
     fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
+            .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
             .split(parent_chunk)
     }
 }
