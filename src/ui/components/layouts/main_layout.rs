@@ -1,4 +1,7 @@
-use std::rc::Rc;
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use crossterm::event::Event;
 use ratatui::{
@@ -9,30 +12,52 @@ use ratatui::{
     Frame,
 };
 
-use super::activity_area_layout::ActivityAreaLayout;
+use super::{
+    totals_layout::TotalsLayout, transaction_assignment_layout::TransactionAssignmentLayout,
+};
 use crate::{
-    csv::models::{BudgetItem, ParseResult},
-    ui::components::Component,
+    csv::models::{AssignedTransaction, BudgetItem, ParseResult},
+    ui::components::{reusable::tabs::TabsManager, Component},
 };
 
 #[derive(Debug)]
 pub struct MainLayout {
-    activity_area_layout: ActivityAreaLayout,
+    transaction_assignment_layout: TransactionAssignmentLayout,
+    totals_layout: TotalsLayout,
     balance: f32,
+    tabs_manager: TabsManager,
 }
 
 impl MainLayout {
-    pub fn init(parse_result: ParseResult, budget_items: Vec<BudgetItem>) -> Self {
+    pub fn init(
+        parse_result: ParseResult,
+        budget_items: Vec<BudgetItem>,
+        assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+    ) -> Self {
+        let tabs = ["Sorter", "Totals"];
+
         MainLayout {
-            activity_area_layout: ActivityAreaLayout::init(parse_result.transactions, budget_items),
+            transaction_assignment_layout: TransactionAssignmentLayout::init(
+                parse_result.transactions,
+                budget_items.clone(),
+            ),
+            totals_layout: TotalsLayout::init(budget_items.clone(), assigned_transactions),
             balance: parse_result.balance,
+            tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
         }
+    }
+    fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {
+        Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(85), Constraint::Percentage(15)])
+            .split(parent_chunk)
     }
 }
 
 impl Component for MainLayout {
     fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
-        self.activity_area_layout.handle_events(event)
+        self.transaction_assignment_layout.handle_events(event)?;
+        self.tabs_manager.handle_events(event)
     }
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
@@ -63,12 +88,22 @@ impl Component for MainLayout {
         .alignment(Alignment::Center)
         .block(block.clone());
 
-        let [title_chunk, transaction_chunk, balance_chunk] = *self.get_layout(area) else {
+        let [title_chunk, transaction_chunk, footer_chunk] = *self.get_layout(area) else {
+            panic!()
+        };
+        let [tabs_chunk, balance_chunk] = *self.get_footer_layout(footer_chunk) else {
             panic!()
         };
 
         frame.render_widget(title, title_chunk);
-        self.activity_area_layout.render(frame, transaction_chunk);
+        match self.tabs_manager.selected_tab_index {
+            0 => self
+                .transaction_assignment_layout
+                .render(frame, transaction_chunk),
+            1 => self.totals_layout.render(frame, transaction_chunk),
+            _ => panic!(),
+        }
+        self.tabs_manager.render(frame, tabs_chunk);
         frame.render_widget(balance, balance_chunk)
     }
 }

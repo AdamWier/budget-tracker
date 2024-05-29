@@ -20,14 +20,14 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct ActivityAreaLayout {
+pub struct TransactionAssignmentLayout {
     transaction_list: ScrollableList,
     budget_list: ScrollableList,
     popup: Popup,
     show_popup: bool,
 }
 
-impl ActivityAreaLayout {
+impl TransactionAssignmentLayout {
     pub fn init(transactions: Vec<Transaction>, budget_items: Vec<BudgetItem>) -> Self {
         let mut boxed_transactions = Vec::new();
         for item in transactions.into_iter() {
@@ -35,10 +35,10 @@ impl ActivityAreaLayout {
         }
 
         let mut boxed_budget_items = Vec::new();
-        for item in budget_items.into_iter() {
+        for item in budget_items.into_iter().filter(|x| x.code != "SAL") {
             boxed_budget_items.push(Box::new(item) as Box<dyn ListItem>)
         }
-        ActivityAreaLayout {
+        TransactionAssignmentLayout {
             transaction_list: ScrollableList::init(boxed_transactions, KeyCode::Up, KeyCode::Down),
             budget_list: ScrollableList::init(
                 boxed_budget_items,
@@ -67,7 +67,8 @@ impl ActivityAreaLayout {
     }
 }
 
-impl Component for ActivityAreaLayout {
+#[allow(clippy::single_match)]
+impl Component for TransactionAssignmentLayout {
     fn handle_key_events(&mut self, key_event: &KeyEvent) -> Result<()> {
         match key_event.code {
             KeyCode::Enter => self.handle_enter_key(),
