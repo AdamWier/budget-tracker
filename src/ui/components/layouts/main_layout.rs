@@ -13,7 +13,8 @@ use ratatui::{
 };
 
 use super::{
-    totals_layout::TotalsLayout, transaction_assignment_layout::TransactionAssignmentLayout,
+    balance_layout::BalanceLayout, totals_layout::TotalsLayout,
+    transaction_assignment_layout::TransactionAssignmentLayout,
 };
 use crate::{
     csv::models::{AssignedTransaction, BudgetItem, ParseResult},
@@ -24,32 +25,36 @@ use crate::{
 pub struct MainLayout {
     transaction_assignment_layout: TransactionAssignmentLayout,
     totals_layout: TotalsLayout,
-    balance: f32,
     tabs_manager: TabsManager,
+    balance_layout: BalanceLayout,
 }
 
 impl MainLayout {
     pub fn init(
         parse_result: ParseResult,
         budget_items: Vec<BudgetItem>,
-        assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+        assigned_transactions_arc: Arc<Mutex<Vec<AssignedTransaction>>>,
     ) -> Self {
         let tabs = ["Sorter", "Totals"];
 
-        MainLayout {
+        Self {
             transaction_assignment_layout: TransactionAssignmentLayout::init(
                 parse_result.transactions,
                 budget_items.clone(),
             ),
-            totals_layout: TotalsLayout::init(budget_items.clone(), assigned_transactions),
-            balance: parse_result.balance,
+            totals_layout: TotalsLayout::init(budget_items.clone(), &assigned_transactions_arc),
             tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
+            balance_layout: BalanceLayout::init(
+                budget_items.clone(),
+                &assigned_transactions_arc,
+                parse_result.balance,
+            ),
         }
     }
     fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(85), Constraint::Percentage(15)])
+            .constraints([Constraint::Percentage(70), Constraint::Percentage(30)])
             .split(parent_chunk)
     }
 }
@@ -81,13 +86,6 @@ impl Component for MainLayout {
         .alignment(Alignment::Center)
         .block(block.clone());
 
-        let balance = Paragraph::new(Text::styled(
-            format!("Balance: {}", self.balance),
-            Style::default().fg(Color::Rgb(255, 176, 0)),
-        ))
-        .alignment(Alignment::Center)
-        .block(block.clone());
-
         let [title_chunk, transaction_chunk, footer_chunk] = *self.get_layout(area) else {
             panic!()
         };
@@ -104,6 +102,6 @@ impl Component for MainLayout {
             _ => panic!(),
         }
         self.tabs_manager.render(frame, tabs_chunk);
-        frame.render_widget(balance, balance_chunk)
+        self.balance_layout.render(frame, balance_chunk);
     }
 }
