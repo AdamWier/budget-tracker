@@ -1,4 +1,7 @@
-use std::rc::Rc;
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use crossterm::event::Event;
 use ratatui::{
@@ -13,7 +16,7 @@ use super::{
     totals_layout::TotalsLayout, transaction_assignment_layout::TransactionAssignmentLayout,
 };
 use crate::{
-    csv::models::{BudgetItem, ParseResult},
+    csv::models::{AssignedTransaction, BudgetItem, ParseResult},
     ui::components::{reusable::tabs::TabsManager, Component},
 };
 
@@ -26,7 +29,11 @@ pub struct MainLayout {
 }
 
 impl MainLayout {
-    pub fn init(parse_result: ParseResult, budget_items: Vec<BudgetItem>) -> Self {
+    pub fn init(
+        parse_result: ParseResult,
+        budget_items: Vec<BudgetItem>,
+        assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+    ) -> Self {
         let tabs = ["Sorter", "Totals"];
 
         MainLayout {
@@ -34,7 +41,7 @@ impl MainLayout {
                 parse_result.transactions,
                 budget_items.clone(),
             ),
-            totals_layout: TotalsLayout::init(budget_items.clone()),
+            totals_layout: TotalsLayout::init(budget_items.clone(), assigned_transactions),
             balance: parse_result.balance,
             tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
         }

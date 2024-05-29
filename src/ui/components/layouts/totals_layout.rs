@@ -1,4 +1,7 @@
-use std::rc::Rc;
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use itertools::Itertools;
 use ratatui::{
@@ -10,10 +13,7 @@ use ratatui::{
 };
 
 use crate::{
-    csv::{
-        models::{AssignedTransaction, BudgetItem, BudgetItemType},
-        parsers::assigned_transactions::parse_assigned_transactions_csv,
-    },
+    csv::models::{AssignedTransaction, BudgetItem, BudgetItemType},
     ui::components::Component,
 };
 
@@ -21,13 +21,18 @@ use crate::{
 pub struct TotalsLayout {
     sections: u16,
     budget_items: Vec<BudgetItem>,
+    assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
 }
 
 impl TotalsLayout {
-    pub fn init(budget_items: Vec<BudgetItem>) -> Self {
+    pub fn init(
+        budget_items: Vec<BudgetItem>,
+        assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+    ) -> Self {
         TotalsLayout {
             sections: 1,
             budget_items,
+            assigned_transactions,
         }
     }
     fn get_code_total_pairs(&self) -> Vec<(String, f32, f32)> {
@@ -39,8 +44,9 @@ impl TotalsLayout {
             .clone()
             .map(|x| x.code.to_string())
             .collect();
-        let assigned_transactions = parse_assigned_transactions_csv("assigned_transactions.csv")
-            .into_iter()
+        let assigned_transactions_binding = self.assigned_transactions.lock().unwrap();
+        let assigned_transactions = assigned_transactions_binding
+            .iter()
             .filter(|x| codes_to_total.contains(&x.code));
         let assigned_transactions_by_code = &assigned_transactions
             .into_iter()
@@ -52,7 +58,6 @@ impl TotalsLayout {
                 .find(|x| x.code == key)
                 .unwrap();
             let total = chunk
-                .collect::<Vec<AssignedTransaction>>()
                 .into_iter()
                 .fold(0f32, |accu, transaction| accu + transaction.amount);
             total_information.push((
