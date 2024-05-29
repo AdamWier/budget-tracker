@@ -62,7 +62,7 @@ impl TotalsLayout {
                 .find(|x| x.code == *key)
                 .unwrap();
             let total = chunk
-                .into_iter()
+                .iter()
                 .fold(0f32, |accu, transaction| accu + transaction.amount);
             total_information.push((
                 budget_item.label.to_string(),
