@@ -1,9 +1,9 @@
 use std::{
+    collections::BTreeMap,
     rc::Rc,
     sync::{Arc, Mutex},
 };
 
-use itertools::Itertools;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -48,14 +48,18 @@ impl TotalsLayout {
         let assigned_transactions = assigned_transactions_binding
             .iter()
             .filter(|x| codes_to_total.contains(&x.code));
-        let assigned_transactions_by_code = &assigned_transactions
-            .into_iter()
-            .chunk_by(|x| x.code.clone());
+        let assigned_transactions_by_code = &assigned_transactions.into_iter().fold(
+            BTreeMap::new(),
+            |mut map: BTreeMap<String, Vec<&AssignedTransaction>>, x| {
+                map.entry(x.code.to_string()).or_default().push(x);
+                map
+            },
+        );
         let mut total_information: Vec<(String, f32, f32)> = Vec::new();
         for (key, chunk) in assigned_transactions_by_code {
             let budget_item = budget_items_to_total
                 .clone()
-                .find(|x| x.code == key)
+                .find(|x| x.code == *key)
                 .unwrap();
             let total = chunk
                 .into_iter()
