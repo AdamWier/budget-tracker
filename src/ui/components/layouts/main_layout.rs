@@ -95,16 +95,14 @@ impl Component for MainLayout {
             panic!()
         };
 
-        if self.tabs_manager.selected_tab_index == 0 {
-            self.transaction_assignment_layout
-                .render(frame, transaction_chunk);
-        }
-        if self.tabs_manager.selected_tab_index == 1 {
-            self.totals_layout.render(frame, transaction_chunk);
-        }
-
         frame.render_widget(title, title_chunk);
-        // page_to_render.render(frame, transaction_chunk);
+        match self.tabs_manager.selected_tab_index {
+            0 => self
+                .transaction_assignment_layout
+                .render(frame, transaction_chunk),
+            1 => self.totals_layout.render(frame, transaction_chunk),
+            _ => panic!(),
+        }
         self.tabs_manager.render(frame, tabs_chunk);
         frame.render_widget(balance, balance_chunk)
     }
