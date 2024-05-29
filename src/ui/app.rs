@@ -61,7 +61,8 @@ impl App {
             terminal.draw(|frame| self.render_frame(frame))?;
             self.handle_events().wrap_err("handle events failed")?;
         }
-        self.watcher.unwatch(Path::new("assigned_transactions.csv"));
+        self.watcher
+            .unwatch(Path::new("assigned_transactions.csv"))?;
         Ok(())
     }
 
