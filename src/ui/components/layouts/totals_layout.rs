@@ -27,8 +27,9 @@ pub struct TotalsLayout {
 impl TotalsLayout {
     pub fn init(
         budget_items: Vec<BudgetItem>,
-        assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+        assigned_transactions_arc: &Arc<Mutex<Vec<AssignedTransaction>>>,
     ) -> Self {
+        let assigned_transactions = Arc::clone(assigned_transactions_arc);
         TotalsLayout {
             sections: 1,
             budget_items,
