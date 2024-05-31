@@ -70,6 +70,9 @@ impl TotalsLayout {
         }
         total_information
     }
+    fn set_sections(&mut self, sections: u16) {
+        self.sections = std::cmp::max(sections, 1)
+    }
 }
 
 impl Component for TotalsLayout {
@@ -85,22 +88,34 @@ impl Component for TotalsLayout {
             .split(area)
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
-        let paragraphs =
-            self.get_code_total_information()
-                .into_iter()
-                .map(|(code, total, amount)| {
-                    Paragraph::new(Text::styled(
-                        format!("{}: {}/{}", code, total, amount),
-                        Style::default().fg(Color::Rgb(255, 176, 0)),
-                    ))
-                    .alignment(Alignment::Center)
-                });
+        let mut paragraphs: Vec<Paragraph> = self
+            .get_code_total_information()
+            .into_iter()
+            .map(|(code, total, amount)| {
+                Paragraph::new(Text::styled(
+                    format!("{}: {}/{}", code, total, amount),
+                    Style::default().fg(Color::Rgb(255, 176, 0)),
+                ))
+                .alignment(Alignment::Center)
+            })
+            .collect();
 
-        self.sections = paragraphs.len() as u16;
+        self.set_sections(paragraphs.len() as u16);
 
         let layout = self.get_layout(area);
 
+        if paragraphs.is_empty() {
+            paragraphs.push(
+                Paragraph::new(Text::styled(
+                    "No items to total",
+                    Style::default().fg(Color::Rgb(255, 176, 0)),
+                ))
+                .alignment(Alignment::Center),
+            );
+        }
+
         paragraphs
+            .iter()
             .enumerate()
             .for_each(|(index, paragraph)| frame.render_widget(paragraph, layout[index]))
     }

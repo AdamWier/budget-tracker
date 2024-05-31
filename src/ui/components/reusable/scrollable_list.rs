@@ -89,6 +89,9 @@ impl ScrollableList {
             .expect("Item was not found");
         self.list_items.remove(index);
     }
+    pub fn update_list_items(&mut self, list_items: Vec<Box<dyn ListItem>>) {
+        self.list_items = list_items;
+    }
 }
 
 impl Component for ScrollableList {
