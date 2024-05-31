@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use super::comparable_transaction::ComparableTransaction;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct AssignedTransaction {
     pub code: String,
     pub date: String,
