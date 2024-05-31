@@ -1,4 +1,7 @@
-use std::rc::Rc;
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
@@ -10,7 +13,9 @@ use ratatui::{
 
 use crate::{
     csv::{
-        models::{list_item::ListItem, BudgetItem, Transaction},
+        models::{
+            list_item::ListItem, AssignedTransaction, BudgetItem, BudgetItemType, Transaction,
+        },
         persister::persist_association,
     },
     ui::components::{
@@ -25,29 +30,51 @@ pub struct TransactionAssignmentLayout {
     budget_list: ScrollableList,
     popup: Popup,
     show_popup: bool,
+    assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+    budget_items: Vec<BudgetItem>,
 }
 
 impl TransactionAssignmentLayout {
-    pub fn init(transactions: Vec<Transaction>, budget_items: Vec<BudgetItem>) -> Self {
+    pub fn init(
+        transactions: Vec<Transaction>,
+        budget_items: Vec<BudgetItem>,
+        assigned_transactions_arc: &Arc<Mutex<Vec<AssignedTransaction>>>,
+    ) -> Self {
+        let assigned_transactions = Arc::clone(assigned_transactions_arc);
+
         let mut boxed_transactions = Vec::new();
         for item in transactions.into_iter() {
             boxed_transactions.push(Box::new(item) as Box<dyn ListItem>)
         }
 
-        let mut boxed_budget_items = Vec::new();
-        for item in budget_items.into_iter().filter(|x| x.code != "SAL") {
-            boxed_budget_items.push(Box::new(item) as Box<dyn ListItem>)
-        }
         TransactionAssignmentLayout {
             transaction_list: ScrollableList::init(boxed_transactions, KeyCode::Up, KeyCode::Down),
-            budget_list: ScrollableList::init(
-                boxed_budget_items,
-                KeyCode::Char('8'),
-                KeyCode::Char('2'),
-            ),
+            budget_list: ScrollableList::init(Vec::new(), KeyCode::Char('8'), KeyCode::Char('2')),
             show_popup: false,
             popup: Popup::init("SAVED".to_string(), Color::Green),
+            assigned_transactions,
+            budget_items,
         }
+    }
+    fn update_budget_list_items(&mut self) {
+        let assigned_codes: Vec<String> = self
+            .assigned_transactions
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|x| x.code.to_string())
+            .collect();
+        let budget_items_left =
+            self.budget_items.clone().into_iter().filter(|x| {
+                x.setting == BudgetItemType::MULTI || !assigned_codes.contains(&x.code)
+            });
+
+        let mut boxed_budget_items = Vec::new();
+        for item in budget_items_left.into_iter().filter(|x| x.code != "SAL") {
+            boxed_budget_items.push(Box::new(item) as Box<dyn ListItem>)
+        }
+
+        self.budget_list.update_list_items(boxed_budget_items)
     }
     fn assign_item(&mut self) {
         let transaction_item = self.transaction_list.get_selected_item();
@@ -88,6 +115,7 @@ impl Component for TransactionAssignmentLayout {
             .split(area)
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
+        self.update_budget_list_items();
         let [transaction_chunk, budget_chunk] = *self.get_layout(area) else {
             panic!()
         };

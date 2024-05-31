@@ -41,6 +41,7 @@ impl MainLayout {
             transaction_assignment_layout: TransactionAssignmentLayout::init(
                 parse_result.transactions,
                 budget_items.clone(),
+                &assigned_transactions_arc,
             ),
             totals_layout: TotalsLayout::init(budget_items.clone(), &assigned_transactions_arc),
             tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
