@@ -1,9 +1,11 @@
 use std::{
     collections::BTreeMap,
+    io::Write,
     rc::Rc,
     sync::{Arc, Mutex},
 };
 
+use ansi_to_tui::IntoText;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -22,6 +24,7 @@ pub struct TotalsLayout {
     sections: u16,
     budget_items: Vec<BudgetItem>,
     assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+    chart_output: String,
 }
 
 impl TotalsLayout {
@@ -30,11 +33,14 @@ impl TotalsLayout {
         assigned_transactions_arc: &Arc<Mutex<Vec<AssignedTransaction>>>,
     ) -> Self {
         let assigned_transactions = Arc::clone(assigned_transactions_arc);
-        TotalsLayout {
+        let mut totals_layout = TotalsLayout {
             sections: 1,
             budget_items,
             assigned_transactions,
-        }
+            chart_output: String::new(),
+        };
+        totals_layout.chart_stuff();
+        totals_layout
     }
     fn get_code_total_information(&self) -> Vec<(String, f32, f32)> {
         let mut budget_items_to_total = self
@@ -72,6 +78,35 @@ impl TotalsLayout {
     }
     fn set_sections(&mut self, sections: u16) {
         self.sections = std::cmp::max(sections, 1)
+    }
+    fn chart_stuff(&mut self) {
+        use piechart::{Chart, Color as PColor, Data};
+
+        let data = vec![
+            Data {
+                label: "Chocolate".into(),
+                value: 4.0,
+                color: Some(PColor::Blue.into()),
+                fill: 'r',
+            },
+            Data {
+                label: "Strawberry".into(),
+                value: 2.0,
+                color: Some(PColor::Red.into()),
+                fill: 'r',
+            },
+            Data {
+                label: "Vanilla".into(),
+                value: 2.6,
+                color: Some(PColor::Yellow.into()),
+                fill: 'r',
+            },
+        ];
+        let chart = Chart::new()
+            .radius(9)
+            .aspect_ratio(3)
+            .legend(true)
+            .draw_into(self, &data);
     }
 }
 
@@ -117,6 +152,20 @@ impl Component for TotalsLayout {
         paragraphs
             .iter()
             .enumerate()
-            .for_each(|(index, paragraph)| frame.render_widget(paragraph, layout[index]))
+            .for_each(|(index, paragraph)| frame.render_widget(paragraph, layout[index]));
+
+        let text = self.chart_output.into_text().unwrap();
+        frame.render_widget(text, area);
+    }
+}
+
+impl Write for TotalsLayout {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.chart_output.push_str(&String::from_utf8_lossy(buf));
+        Ok(buf.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.chart_output = String::new();
+        Ok(())
     }
 }
