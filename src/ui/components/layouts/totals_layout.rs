@@ -1,5 +1,6 @@
 use std::{
     collections::BTreeMap,
+    ops::Mul,
     rc::Rc,
     sync::{Arc, Mutex},
 };
@@ -17,6 +18,12 @@ use crate::{
     csv::models::{AssignedTransaction, BudgetItem, BudgetItemType},
     ui::components::{reusable::chart::RatatuiChart, Component},
 };
+
+struct TotalInformation {
+    label: String,
+    total: f32,
+    budget_amount: f32,
+}
 
 #[derive(Debug)]
 pub struct TotalsLayout {
@@ -37,7 +44,7 @@ impl TotalsLayout {
             assigned_transactions,
         }
     }
-    fn get_code_total_information(&self) -> Vec<(String, f32, f32)> {
+    fn get_code_total_information(&self) -> Vec<TotalInformation> {
         let mut budget_items_to_total = self
             .budget_items
             .iter()
@@ -57,17 +64,17 @@ impl TotalsLayout {
                 map
             },
         );
-        let mut total_information: Vec<(String, f32, f32)> = Vec::new();
+        let mut total_information: Vec<TotalInformation> = Vec::new();
         for (key, chunk) in assigned_transactions_by_code {
             let budget_item = budget_items_to_total.find(|x| x.code == *key).unwrap();
             let total = chunk
                 .iter()
                 .fold(0.0, |accu, transaction| accu + transaction.amount);
-            total_information.push((
-                budget_item.label.to_string(),
-                total.mul_add(-1.0, 0.0),
-                budget_item.amount,
-            ))
+            total_information.push(TotalInformation {
+                budget_amount: budget_item.amount,
+                label: budget_item.label.to_string(),
+                total: total.mul(-1.0),
+            })
         }
         total_information
     }
@@ -92,9 +99,9 @@ impl Component for TotalsLayout {
         let mut total_paragraphs: Vec<Paragraph> = self
             .get_code_total_information()
             .into_iter()
-            .map(|(code, total, amount)| {
+            .map(|x| {
                 Paragraph::new(Text::styled(
-                    format!("{}: {}/{}", code, total, amount),
+                    format!("{}: {}/{}", x.label, x.total, x.budget_amount),
                     Style::default().fg(Color::Rgb(255, 176, 0)),
                 ))
                 .alignment(Alignment::Center)
