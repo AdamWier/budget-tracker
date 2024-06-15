@@ -1,11 +1,10 @@
 use std::{
     collections::BTreeMap,
-    io::Write,
     rc::Rc,
     sync::{Arc, Mutex},
 };
 
-use ansi_to_tui::IntoText;
+use piechart::{Color as PColor, Data};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -16,7 +15,7 @@ use ratatui::{
 
 use crate::{
     csv::models::{AssignedTransaction, BudgetItem, BudgetItemType},
-    ui::components::Component,
+    ui::components::{reusable::chart::RatatuiChart, Component},
 };
 
 #[derive(Debug)]
@@ -24,7 +23,6 @@ pub struct TotalsLayout {
     sections: u16,
     budget_items: Vec<BudgetItem>,
     assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
-    chart_output: String,
 }
 
 impl TotalsLayout {
@@ -33,14 +31,11 @@ impl TotalsLayout {
         assigned_transactions_arc: &Arc<Mutex<Vec<AssignedTransaction>>>,
     ) -> Self {
         let assigned_transactions = Arc::clone(assigned_transactions_arc);
-        let mut totals_layout = TotalsLayout {
+        TotalsLayout {
             sections: 1,
             budget_items,
             assigned_transactions,
-            chart_output: String::new(),
-        };
-        totals_layout.chart_stuff();
-        totals_layout
+        }
     }
     fn get_code_total_information(&self) -> Vec<(String, f32, f32)> {
         let mut budget_items_to_total = self
@@ -79,35 +74,6 @@ impl TotalsLayout {
     fn set_sections(&mut self, sections: u16) {
         self.sections = std::cmp::max(sections, 1)
     }
-    fn chart_stuff(&mut self) {
-        use piechart::{Chart, Color as PColor, Data};
-
-        let data = vec![
-            Data {
-                label: "Chocolate".into(),
-                value: 4.0,
-                color: Some(PColor::Blue.into()),
-                fill: 'r',
-            },
-            Data {
-                label: "Strawberry".into(),
-                value: 2.0,
-                color: Some(PColor::Red.into()),
-                fill: 'r',
-            },
-            Data {
-                label: "Vanilla".into(),
-                value: 2.6,
-                color: Some(PColor::Yellow.into()),
-                fill: 'r',
-            },
-        ];
-        let chart = Chart::new()
-            .radius(9)
-            .aspect_ratio(3)
-            .legend(true)
-            .draw_into(self, &data);
-    }
 }
 
 impl Component for TotalsLayout {
@@ -123,7 +89,7 @@ impl Component for TotalsLayout {
             .split(area)
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
-        let mut paragraphs: Vec<Paragraph> = self
+        let mut total_paragraphs: Vec<Paragraph> = self
             .get_code_total_information()
             .into_iter()
             .map(|(code, total, amount)| {
@@ -135,12 +101,36 @@ impl Component for TotalsLayout {
             })
             .collect();
 
-        self.set_sections(paragraphs.len() as u16);
+        let charts = self.get_code_total_information().into_iter().map(move |_| {
+            RatatuiChart::new(vec![
+                Data {
+                    label: "Chocolate".into(),
+                    value: 4.0,
+                    color: Some(PColor::Blue.into()),
+                    fill: '*',
+                },
+                Data {
+                    label: "Strawberry".into(),
+                    value: 2.0,
+                    color: Some(PColor::Red.into()),
+                    fill: '*',
+                },
+                Data {
+                    label: "Vanilla".into(),
+                    value: 2.6,
+                    color: Some(PColor::Yellow.into()),
+                    fill: '*',
+                },
+            ])
+        });
+
+        let total_sections = total_paragraphs.len() * 2;
+        self.set_sections(total_sections as u16);
 
         let layout = self.get_layout(area);
 
-        if paragraphs.is_empty() {
-            paragraphs.push(
+        if total_paragraphs.is_empty() {
+            total_paragraphs.push(
                 Paragraph::new(Text::styled(
                     "No items to total",
                     Style::default().fg(Color::Rgb(255, 176, 0)),
@@ -149,23 +139,12 @@ impl Component for TotalsLayout {
             );
         }
 
-        paragraphs
+        total_paragraphs
             .iter()
             .enumerate()
-            .for_each(|(index, paragraph)| frame.render_widget(paragraph, layout[index]));
-
-        let text = self.chart_output.into_text().unwrap();
-        frame.render_widget(text, area);
-    }
-}
-
-impl Write for TotalsLayout {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.chart_output.push_str(&String::from_utf8_lossy(buf));
-        Ok(buf.len())
-    }
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.chart_output = String::new();
-        Ok(())
+            .for_each(|(index, paragraph)| frame.render_widget(paragraph, layout[index * 2]));
+        charts
+            .enumerate()
+            .for_each(|(index, paragraph)| paragraph.draw_chart(frame, layout[(index * 2) + 1]))
     }
 }
