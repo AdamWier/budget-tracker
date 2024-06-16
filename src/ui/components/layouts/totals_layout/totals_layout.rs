@@ -5,7 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use piechart::{Color as PColor, Data};
+use chrono::{Datelike, Local};
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -17,13 +17,10 @@ use ratatui::{
 use crate::{
     csv::models::{AssignedTransaction, BudgetItem, BudgetItemType},
     ui::components::{reusable::chart::RatatuiChart, Component},
+    utils::get_days_in_current_month,
 };
 
-struct TotalInformation {
-    label: String,
-    total: f32,
-    budget_amount: f32,
-}
+use super::total_information::TotalInformation;
 
 #[derive(Debug)]
 pub struct TotalsLayout {
@@ -70,10 +67,16 @@ impl TotalsLayout {
             let total = chunk
                 .iter()
                 .fold(0.0, |accu, transaction| accu + transaction.amount);
+
+            let days_in_current_month = get_days_in_current_month() as f32;
+            let current_day_of_month = Local::now().day() as f32;
+            let max_to_date = budget_item.amount / days_in_current_month * current_day_of_month;
+
             total_information.push(TotalInformation {
                 budget_amount: budget_item.amount,
                 label: budget_item.label.to_string(),
                 total: total.mul(-1.0),
+                max_to_date,
             })
         }
         total_information
@@ -101,34 +104,23 @@ impl Component for TotalsLayout {
             .into_iter()
             .map(|x| {
                 Paragraph::new(Text::styled(
-                    format!("{}: {}/{}", x.label, x.total, x.budget_amount),
+                    format!(
+                        "{}: {}/{} and Max to date: {}",
+                        x.label, x.total, x.budget_amount, x.max_to_date
+                    ),
                     Style::default().fg(Color::Rgb(255, 176, 0)),
                 ))
                 .alignment(Alignment::Center)
             })
             .collect();
 
-        let charts = self.get_code_total_information().into_iter().map(move |_| {
-            RatatuiChart::new(vec![
-                Data {
-                    label: "Chocolate".into(),
-                    value: 4.0,
-                    color: Some(PColor::Blue.into()),
-                    fill: '*',
-                },
-                Data {
-                    label: "Strawberry".into(),
-                    value: 2.0,
-                    color: Some(PColor::Red.into()),
-                    fill: '*',
-                },
-                Data {
-                    label: "Vanilla".into(),
-                    value: 2.6,
-                    color: Some(PColor::Yellow.into()),
-                    fill: '*',
-                },
-            ])
+        let charts = self.get_code_total_information().into_iter().map(move |x| {
+            let underspent = x.max_to_date > x.total;
+            RatatuiChart::new(if underspent {
+                x.get_underspent_data()
+            } else {
+                x.get_overspent_data()
+            })
         });
 
         let total_sections = total_paragraphs.len() * 2;
