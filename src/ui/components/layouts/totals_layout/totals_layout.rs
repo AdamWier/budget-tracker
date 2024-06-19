@@ -71,12 +71,15 @@ impl TotalsLayout {
             let days_in_current_month = get_days_in_current_month() as f32;
             let current_day_of_month = Local::now().day() as f32;
             let max_to_date = budget_item.amount / days_in_current_month * current_day_of_month;
+            let projected_spending =
+                budget_item.amount / days_in_current_month * (current_day_of_month + 7.0);
 
             total_information.push(TotalInformation {
                 budget_amount: budget_item.amount,
                 label: budget_item.label.to_string(),
                 total: total.mul(-1.0),
                 max_to_date,
+                projected_spending,
             })
         }
         total_information

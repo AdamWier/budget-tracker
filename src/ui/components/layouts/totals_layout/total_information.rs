@@ -5,6 +5,7 @@ pub struct TotalInformation {
     pub total: f32,
     pub budget_amount: f32,
     pub max_to_date: f32,
+    pub projected_spending: f32,
 }
 
 impl TotalInformation {
@@ -20,6 +21,12 @@ impl TotalInformation {
             Data {
                 label: "Left to spend".into(),
                 value: diff,
+                color: Some(Color::RGB(255, 165, 0).into()),
+                fill: '*',
+            },
+            Data {
+                label: "What's left for a week from now".into(),
+                value: self.projected_spending - diff,
                 color: Some(Color::Green.into()),
                 fill: '*',
             },
