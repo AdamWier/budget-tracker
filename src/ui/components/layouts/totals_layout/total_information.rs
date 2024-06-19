@@ -9,7 +9,15 @@ pub struct TotalInformation {
 }
 
 impl TotalInformation {
-    pub fn get_underspent_data(&self) -> Vec<Data> {
+    pub fn get_chart_data(&self) -> Vec<Data> {
+        let underspent = self.max_to_date > self.total;
+        if underspent {
+            self.get_underspent_data()
+        } else {
+            self.get_overspent_data()
+        }
+    }
+    fn get_underspent_data(&self) -> Vec<Data> {
         let diff = self.max_to_date - self.total;
         let data = vec![
             Data {
@@ -39,7 +47,7 @@ impl TotalInformation {
         ];
         data.into_iter().filter(|x| x.value > 0.0).collect()
     }
-    pub fn get_overspent_data(&self) -> Vec<Data> {
+    fn get_overspent_data(&self) -> Vec<Data> {
         let diff = self.total - self.max_to_date;
         let data = vec![
             Data {

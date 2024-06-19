@@ -117,14 +117,10 @@ impl Component for TotalsLayout {
             })
             .collect();
 
-        let charts = self.get_code_total_information().into_iter().map(move |x| {
-            let underspent = x.max_to_date > x.total;
-            RatatuiChart::new(if underspent {
-                x.get_underspent_data()
-            } else {
-                x.get_overspent_data()
-            })
-        });
+        let charts = self
+            .get_code_total_information()
+            .into_iter()
+            .map(move |x| RatatuiChart::new(x.get_chart_data()));
 
         let total_sections = total_paragraphs.len() * 2;
         self.set_sections(total_sections as u16);
