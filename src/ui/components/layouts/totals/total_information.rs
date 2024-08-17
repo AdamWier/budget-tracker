@@ -1,5 +1,7 @@
 use piechart::{Color, Data};
 
+const FILLER: char = '*';
+
 pub struct TotalInformation {
     pub label: String,
     pub total: f32,
@@ -26,19 +28,19 @@ impl TotalInformation {
                 label: "Unspent".into(),
                 value: self.budget_amount,
                 color: Some(Color::White.into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "Left to spend to date".into(),
                 value: self.max_to_date,
                 color: Some(Color::RGB(255, 165, 0).into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "What's left for a week from now".into(),
                 value: self.projected_spending + 0.1,
                 color: Some(Color::Green.into()),
-                fill: '*',
+                fill: FILLER,
             },
         ];
         data.into_iter().filter(|x| x.value > 0.0).collect()
@@ -50,25 +52,25 @@ impl TotalInformation {
                 label: "Spent".into(),
                 value: self.total,
                 color: Some(Color::RGB(255, 165, 0).into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "Left to spend to date".into(),
                 value: diff,
                 color: Some(Color::Green.into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "What's left for a week from now".into(),
                 value: self.projected_spending - diff,
                 color: Some(Color::Yellow.into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "Unspent".into(),
                 value: (0 as f32).max(self.budget_amount - self.total - (diff)),
                 color: Some(Color::White.into()),
-                fill: '*',
+                fill: FILLER,
             },
         ];
         data.into_iter().filter(|x| x.value > 0.0).collect()
@@ -80,19 +82,19 @@ impl TotalInformation {
                 label: "Spent".into(),
                 value: self.max_to_date,
                 color: Some(Color::Yellow.into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "Overspent".into(),
                 value: diff,
                 color: Some(Color::Red.into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "Unspent".into(),
                 value: self.budget_amount - self.total,
                 color: Some(Color::White.into()),
-                fill: '*',
+                fill: FILLER,
             },
         ];
         data.into_iter().filter(|x| x.value > 0.0).collect()
@@ -104,13 +106,13 @@ impl TotalInformation {
                 label: "Spent".into(),
                 value: self.budget_amount - diff,
                 color: Some(Color::Yellow.into()),
-                fill: '*',
+                fill: FILLER,
             },
             Data {
                 label: "Over max".into(),
                 value: diff,
                 color: Some(Color::Red.into()),
-                fill: '*',
+                fill: FILLER,
             },
         ];
         data.into_iter().filter(|x| x.value > 0.0).collect()
