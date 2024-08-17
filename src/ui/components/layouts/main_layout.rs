@@ -13,7 +13,7 @@ use ratatui::{
 };
 
 use super::{
-    balance_layout::BalanceLayout, totals_layout::TotalsLayout,
+    balance_layout::BalanceLayout, totals::TotalsLayout,
     transaction_assignment_layout::TransactionAssignmentLayout,
 };
 use crate::{
