@@ -11,6 +11,9 @@ pub struct TotalInformation {
 }
 
 impl TotalInformation {
+    fn get_orange(&self) -> Color {
+        Color::RGB(255, 165, 0)
+    }
     pub fn get_chart_data(&self) -> Vec<Data> {
         if self.total <= 0.0 {
             self.get_unspent_chart()
@@ -23,7 +26,7 @@ impl TotalInformation {
         }
     }
     fn get_unspent_chart(&self) -> Vec<Data> {
-        let data = vec![
+        vec![
             Data {
                 label: "Unspent".into(),
                 value: self.budget_amount,
@@ -33,7 +36,7 @@ impl TotalInformation {
             Data {
                 label: "Left to spend to date".into(),
                 value: self.max_to_date,
-                color: Some(Color::RGB(255, 165, 0).into()),
+                color: Some(self.get_orange().into()),
                 fill: FILLER,
             },
             Data {
@@ -42,8 +45,7 @@ impl TotalInformation {
                 color: Some(Color::Green.into()),
                 fill: FILLER,
             },
-        ];
-        data.into_iter().filter(|x| x.value > 0.0).collect()
+        ]
     }
     fn get_underspent_data(&self) -> Vec<Data> {
         let diff = self.max_to_date - self.total;
@@ -51,7 +53,7 @@ impl TotalInformation {
             Data {
                 label: "Spent".into(),
                 value: self.total,
-                color: Some(Color::RGB(255, 165, 0).into()),
+                color: Some(self.get_orange().into()),
                 fill: FILLER,
             },
             Data {
