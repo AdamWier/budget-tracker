@@ -7,7 +7,6 @@ use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::Color,
     Frame,
 };
 
@@ -18,18 +17,13 @@ use crate::{
         },
         persister::persist_association,
     },
-    ui::components::{
-        reusable::{popup::Popup, scrollable_list::ScrollableList},
-        Component,
-    },
+    ui::components::{reusable::scrollable_list::ScrollableList, Component},
 };
 
 #[derive(Debug)]
 pub struct TransactionAssignmentLayout {
     transaction_list: ScrollableList,
     budget_list: ScrollableList,
-    popup: Popup,
-    show_popup: bool,
     assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
     budget_items: Vec<BudgetItem>,
 }
@@ -50,8 +44,6 @@ impl TransactionAssignmentLayout {
         TransactionAssignmentLayout {
             transaction_list: ScrollableList::init(boxed_transactions, KeyCode::Up, KeyCode::Down),
             budget_list: ScrollableList::init(Vec::new(), KeyCode::Char('8'), KeyCode::Char('2')),
-            show_popup: false,
-            popup: Popup::init("SAVED".to_string(), Color::Green),
             assigned_transactions,
             budget_items,
         }
@@ -83,14 +75,10 @@ impl TransactionAssignmentLayout {
             return;
         }
         persist_association(budget_item.unwrap(), transaction_item.unwrap());
-        self.show_popup = true;
         self.transaction_list.remove_selected_item();
     }
     fn handle_enter_key(&mut self) {
-        match self.show_popup {
-            true => self.show_popup = false,
-            false => self.assign_item(),
-        }
+        self.assign_item()
     }
 }
 
@@ -106,7 +94,7 @@ impl Component for TransactionAssignmentLayout {
     fn handle_child_events(&mut self, event: &Event) -> Result<()> {
         self.transaction_list.handle_events(event)?;
         self.budget_list.handle_events(event)?;
-        self.popup.handle_events(event)
+        Ok(())
     }
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
@@ -119,11 +107,7 @@ impl Component for TransactionAssignmentLayout {
         let [transaction_chunk, budget_chunk] = *self.get_layout(area) else {
             panic!()
         };
-        if self.show_popup {
-            self.popup.render(frame, area)
-        } else {
-            self.budget_list.render(frame, budget_chunk);
-            self.transaction_list.render(frame, transaction_chunk);
-        }
+        self.budget_list.render(frame, budget_chunk);
+        self.transaction_list.render(frame, transaction_chunk);
     }
 }
