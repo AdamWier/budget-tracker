@@ -15,7 +15,7 @@ impl TotalInformation {
         Color::RGB(255, 165, 0)
     }
     pub fn get_chart_data(&self) -> Vec<Data> {
-        if self.total <= 0.0 {
+        let data = if self.total <= 0.0 {
             self.get_unspent_chart()
         } else if self.max_to_date >= self.total {
             self.get_underspent_data()
@@ -23,7 +23,8 @@ impl TotalInformation {
             self.get_totally_overspent()
         } else {
             self.get_overspent_data()
-        }
+        };
+        data.into_iter().filter(|x| x.value > 0.0).collect()
     }
     fn get_unspent_chart(&self) -> Vec<Data> {
         vec![
@@ -49,7 +50,7 @@ impl TotalInformation {
     }
     fn get_underspent_data(&self) -> Vec<Data> {
         let diff = self.max_to_date - self.total;
-        let data = vec![
+        vec![
             Data {
                 label: "Spent".into(),
                 value: self.total,
@@ -74,12 +75,12 @@ impl TotalInformation {
                 color: Some(Color::White.into()),
                 fill: FILLER,
             },
-        ];
-        data.into_iter().filter(|x| x.value > 0.0).collect()
+        ]
+        
     }
     fn get_overspent_data(&self) -> Vec<Data> {
         let diff = self.total - self.max_to_date;
-        let data = vec![
+        vec![
             Data {
                 label: "Spent".into(),
                 value: self.max_to_date,
@@ -98,12 +99,11 @@ impl TotalInformation {
                 color: Some(Color::White.into()),
                 fill: FILLER,
             },
-        ];
-        data.into_iter().filter(|x| x.value > 0.0).collect()
+        ]
     }
     fn get_totally_overspent(&self) -> Vec<Data> {
         let diff = self.total - self.budget_amount;
-        let data = vec![
+        vec![
             Data {
                 label: "Spent".into(),
                 value: self.budget_amount - diff,
@@ -116,7 +116,6 @@ impl TotalInformation {
                 color: Some(Color::Red.into()),
                 fill: FILLER,
             },
-        ];
-        data.into_iter().filter(|x| x.value > 0.0).collect()
+        ]
     }
 }
