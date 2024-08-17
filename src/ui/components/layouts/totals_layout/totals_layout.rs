@@ -108,8 +108,12 @@ impl Component for TotalsLayout {
             .map(|x| {
                 Paragraph::new(Text::styled(
                     format!(
-                        "{}: {}/{} and Max to date: {}",
-                        x.label, x.total, x.budget_amount, x.max_to_date
+                        "{}: {}/{}\nMax to date: {}\nFor the coming week: {}",
+                        x.label,
+                        x.total,
+                        x.budget_amount,
+                        x.max_to_date,
+                        (x.projected_spending - x.total).max(0.0)
                     ),
                     Style::default().fg(Color::Rgb(255, 176, 0)),
                 ))
