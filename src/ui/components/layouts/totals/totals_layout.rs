@@ -68,7 +68,7 @@ impl TotalsLayout {
                 .iter()
                 .fold(0.0, |accu, transaction| accu + transaction.amount);
 
-            let days_in_current_month = get_days_in_current_month() as f32;
+            let days_in_current_month = get_days_in_current_month().unwrap() as f32;
             let current_day_of_month = Local::now().day() as f32;
             let max_to_date = budget_item.amount / days_in_current_month * current_day_of_month;
             let projected_spending =

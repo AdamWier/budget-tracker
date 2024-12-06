@@ -1,23 +1,18 @@
+use std::num::ParseFloatError;
+
 use chrono::{Datelike, Local, NaiveDate};
 
-pub fn parse_european_number_format(value: &str) -> Result<f32, String> {
-    let error = format!("Error parsing amount {}", value);
-    let parts: Vec<&str> = value.split(',').collect();
-    let main_part = parts
-        .first()
-        .expect(&error)
-        .replace('.', "")
+pub fn parse_european_number_format(value: &str) -> Result<f32, ParseFloatError> {
+    value
+        .chars()
+        .filter(|&c| c != '.' && c != ' ')
+        .map(|c| if c == ',' { '.' } else { c })
+        .collect::<String>()
         .parse::<f32>()
-        .expect(&error);
-    let decimal_part = parts.get(1).expect(&error).parse::<f32>().expect(&error) / 100.0;
-    Ok(main_part + decimal_part)
 }
 
-pub fn get_days_in_current_month() -> u32 {
+pub fn get_days_in_current_month() -> Option<u32> {
     NaiveDate::from_ymd_opt(Local::now().year(), Local::now().month(), 1)
-        .unwrap()
-        .pred_opt()
-        .unwrap()
-        .day0()
-        + 1
+        .and_then(|x| x.pred_opt())
+        .map(|x| x.day0() + 1)
 }
