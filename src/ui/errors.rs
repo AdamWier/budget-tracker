@@ -1,10 +1,11 @@
 use std::panic;
 
+use anyhow::Result;
 use color_eyre::{config::HookBuilder, eyre};
 
 use crate::ui;
 
-pub fn install_hooks() -> color_eyre::Result<()> {
+pub fn install_hooks() -> Result<()> {
     let (color_eyre_panic_hook, color_eyre_hook) = HookBuilder::default().into_hooks();
 
     let standard_panic_hook = color_eyre_panic_hook.into_panic_hook();

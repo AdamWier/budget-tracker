@@ -1,5 +1,5 @@
 use crate::csv::{
-    models::{BudgetItem, ParseResult},
+    models::{AssignedTransaction, BudgetItem, ParseResult},
     parsers::assigned_transactions::parse_assigned_transactions_csv,
 };
 use color_eyre::eyre::{Context, Result};
@@ -25,19 +25,20 @@ pub struct App {
 
 #[allow(clippy::single_match)]
 impl App {
-    pub fn new(parse_result: ParseResult, budget_items: Vec<BudgetItem>) -> App {
-        let assigned_transactions_original = Arc::new(Mutex::new(parse_assigned_transactions_csv(
-            "assigned_transactions.csv",
-        )));
-        let assigned_transactions = Arc::clone(&assigned_transactions_original);
+    pub fn new(
+        parse_result: ParseResult,
+        budget_items: Vec<BudgetItem>,
+        assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+    ) -> App {
+        let assigned_transactions_clone = Arc::clone(&assigned_transactions);
 
         let mut watcher: notify::ReadDirectoryChangesWatcher =
             notify::recommended_watcher(move |res| {
-                let clone = Arc::clone(&assigned_transactions_original);
+                let clone = Arc::clone(&assigned_transactions_clone);
                 match res {
                     Ok(_) => {
                         *clone.lock().unwrap() =
-                            parse_assigned_transactions_csv("assigned_transactions.csv")
+                            parse_assigned_transactions_csv("assigned_transactions.csv").unwrap()
                     }
                     Err(_) => panic!(),
                 }
