@@ -34,7 +34,7 @@ impl TabsManager {
     }
 }
 
-impl Component for TabsManager {
+impl Component<'_> for TabsManager {
     fn handle_key_events(
         &mut self,
         key: &crossterm::event::KeyEvent,

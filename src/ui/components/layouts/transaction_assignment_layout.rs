@@ -1,7 +1,4 @@
-use std::{
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::rc::Rc;
 
 use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
@@ -12,44 +9,38 @@ use ratatui::{
 
 use crate::{
     csv::{
-        models::{
-            list_item::ListItem, AssignedTransaction, BudgetItem, BudgetItemType, Transaction,
-        },
+        models::{list_item::ListItem, BudgetItemType},
         persister::persist_association,
     },
-    ui::components::{reusable::scrollable_list::ScrollableList, Component},
+    ui::{
+        components::{reusable::scrollable_list::ScrollableList, Component},
+        state::State,
+    },
 };
 
 #[derive(Debug)]
-pub struct TransactionAssignmentLayout {
+pub struct TransactionAssignmentLayout<'a> {
     transaction_list: ScrollableList,
     budget_list: ScrollableList,
-    assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
-    budget_items: Vec<BudgetItem>,
+    state: &'a State,
 }
 
-impl TransactionAssignmentLayout {
-    pub fn init(
-        transactions: Vec<Transaction>,
-        budget_items: Vec<BudgetItem>,
-        assigned_transactions_arc: &Arc<Mutex<Vec<AssignedTransaction>>>,
-    ) -> Self {
-        let assigned_transactions = Arc::clone(assigned_transactions_arc);
-
+impl TransactionAssignmentLayout<'_> {
+    pub fn init(state: &'_ State) -> TransactionAssignmentLayout<'_> {
         let mut boxed_transactions = Vec::new();
-        for item in transactions.into_iter() {
+        for item in state.transactions.clone().into_iter() {
             boxed_transactions.push(Box::new(item) as Box<dyn ListItem>)
         }
 
         TransactionAssignmentLayout {
             transaction_list: ScrollableList::init(boxed_transactions, KeyCode::Up, KeyCode::Down),
             budget_list: ScrollableList::init(Vec::new(), KeyCode::Char('8'), KeyCode::Char('2')),
-            assigned_transactions,
-            budget_items,
+            state,
         }
     }
     fn update_budget_list_items(&mut self) {
         let assigned_codes: Vec<String> = self
+            .state
             .assigned_transactions
             .lock()
             .unwrap()
@@ -57,7 +48,7 @@ impl TransactionAssignmentLayout {
             .map(|x| x.code.to_string())
             .collect();
         let budget_items_left =
-            self.budget_items.clone().into_iter().filter(|x| {
+            self.state.budget_items.clone().into_iter().filter(|x| {
                 x.setting == BudgetItemType::MULTI || !assigned_codes.contains(&x.code)
             });
 
@@ -74,7 +65,7 @@ impl TransactionAssignmentLayout {
         if budget_item.is_none() || transaction_item.is_none() {
             return;
         }
-        persist_association(budget_item.unwrap(), transaction_item.unwrap());
+        persist_association(budget_item.unwrap(), transaction_item.unwrap()).unwrap();
         self.transaction_list.remove_selected_item();
     }
     fn handle_enter_key(&mut self) {
@@ -83,7 +74,7 @@ impl TransactionAssignmentLayout {
 }
 
 #[allow(clippy::single_match)]
-impl Component for TransactionAssignmentLayout {
+impl Component<'_> for TransactionAssignmentLayout<'_> {
     fn handle_key_events(&mut self, key_event: &KeyEvent) -> Result<()> {
         match key_event.code {
             KeyCode::Enter => self.handle_enter_key(),

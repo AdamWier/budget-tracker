@@ -7,7 +7,7 @@ use color_eyre::eyre::{Context, Result};
 use crossterm::event::{Event, KeyEvent, KeyEventKind, MouseEvent};
 use ratatui::{layout::Rect, Frame};
 
-pub trait Component {
+pub trait Component<'a> {
     fn render(&mut self, f: &mut Frame, area: Rect);
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         [area].into()

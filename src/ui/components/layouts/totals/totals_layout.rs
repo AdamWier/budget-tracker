@@ -2,7 +2,6 @@ use std::{
     collections::BTreeMap,
     ops::Mul,
     rc::Rc,
-    sync::{Arc, Mutex},
 };
 
 use chrono::{Datelike, Local};
@@ -15,34 +14,29 @@ use ratatui::{
 };
 
 use crate::{
-    csv::models::{AssignedTransaction, BudgetItem, BudgetItemType},
-    ui::components::{reusable::chart::RatatuiChart, Component},
+    csv::models::{AssignedTransaction, BudgetItemType},
+    ui::{
+        components::{reusable::chart::RatatuiChart, Component},
+        state::State,
+    },
     utils::get_days_in_current_month,
 };
 
 use super::total_information::TotalInformation;
 
 #[derive(Debug)]
-pub struct TotalsLayout {
+pub struct TotalsLayout<'a> {
     sections: u16,
-    budget_items: Vec<BudgetItem>,
-    assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
+    state: &'a State,
 }
 
-impl TotalsLayout {
-    pub fn init(
-        budget_items: Vec<BudgetItem>,
-        assigned_transactions_arc: &Arc<Mutex<Vec<AssignedTransaction>>>,
-    ) -> Self {
-        let assigned_transactions = Arc::clone(assigned_transactions_arc);
-        TotalsLayout {
-            sections: 1,
-            budget_items,
-            assigned_transactions,
-        }
+impl TotalsLayout<'_> {
+    pub fn init(state: &State) -> TotalsLayout<'_> {
+        TotalsLayout { sections: 1, state }
     }
     fn get_code_total_information(&self) -> Vec<TotalInformation> {
         let mut budget_items_to_total = self
+            .state
             .budget_items
             .iter()
             .filter(|x| x.setting == BudgetItemType::MULTI);
@@ -50,7 +44,7 @@ impl TotalsLayout {
             .clone()
             .map(|x| x.code.to_string())
             .collect();
-        let assigned_transactions_binding = self.assigned_transactions.lock().unwrap();
+        let assigned_transactions_binding = self.state.assigned_transactions.lock().unwrap();
         let assigned_transactions = assigned_transactions_binding
             .iter()
             .filter(|x| codes_to_total.contains(&x.code));
@@ -89,7 +83,7 @@ impl TotalsLayout {
     }
 }
 
-impl Component for TotalsLayout {
+impl Component<'_> for TotalsLayout<'_> {
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         let size_for_each = 100_u16.saturating_div(self.sections);
         let mut constraints: Vec<Constraint> = Vec::new();

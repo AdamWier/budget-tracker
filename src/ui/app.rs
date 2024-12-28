@@ -1,58 +1,26 @@
-use crate::csv::{
-    models::{BudgetItem, ParseResult},
-    parsers::assigned_transactions::parse_assigned_transactions_csv,
-};
 use color_eyre::eyre::{Context, Result};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use notify::{ReadDirectoryChangesWatcher, RecursiveMode, Watcher};
+use notify::{ReadDirectoryChangesWatcher, Watcher};
 use ratatui::prelude::*;
-use std::{
-    io::Stdout,
-    path::Path,
-    sync::{Arc, Mutex},
-};
+use std::{io::Stdout, path::Path};
 
 use super::components::{layouts::main_layout::MainLayout, Component};
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
 #[derive(Debug)]
-pub struct App {
+pub struct App<'a> {
     exit: bool,
-    main_layout: MainLayout,
+    main_layout: MainLayout<'a>,
     watcher: ReadDirectoryChangesWatcher,
 }
 
 #[allow(clippy::single_match)]
-impl App {
-    pub fn new(parse_result: ParseResult, budget_items: Vec<BudgetItem>) -> App {
-        let assigned_transactions_original = Arc::new(Mutex::new(parse_assigned_transactions_csv(
-            "assigned_transactions.csv",
-        )));
-        let assigned_transactions = Arc::clone(&assigned_transactions_original);
-
-        let mut watcher: notify::ReadDirectoryChangesWatcher =
-            notify::recommended_watcher(move |res| {
-                let clone = Arc::clone(&assigned_transactions_original);
-                match res {
-                    Ok(_) => {
-                        *clone.lock().unwrap() =
-                            parse_assigned_transactions_csv("assigned_transactions.csv")
-                    }
-                    Err(_) => panic!(),
-                }
-            })
-            .unwrap();
-        watcher
-            .watch(
-                Path::new("assigned_transactions.csv"),
-                RecursiveMode::Recursive,
-            )
-            .unwrap();
-
-        App {
-            main_layout: MainLayout::init(parse_result, budget_items, assigned_transactions),
+impl<'a> App<'a> {
+    pub fn new(main_layout: MainLayout<'a>, watcher: ReadDirectoryChangesWatcher) -> App<'a> {
+        Self {
             exit: false,
+            main_layout,
             watcher,
         }
     }
