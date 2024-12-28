@@ -1,16 +1,8 @@
-use crate::csv::{
-    models::{AssignedTransaction, BudgetItem, ParseResult},
-    parsers::assigned_transactions::parse_assigned_transactions_csv,
-};
 use color_eyre::eyre::{Context, Result};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use notify::{ReadDirectoryChangesWatcher, RecursiveMode, Watcher};
+use notify::{ReadDirectoryChangesWatcher, Watcher};
 use ratatui::prelude::*;
-use std::{
-    io::Stdout,
-    path::Path,
-    sync::{Arc, Mutex},
-};
+use std::{io::Stdout, path::Path};
 
 use super::components::{layouts::main_layout::MainLayout, Component};
 
@@ -18,45 +10,13 @@ pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
 #[derive(Debug)]
 pub struct App {
-    exit: bool,
-    main_layout: MainLayout,
-    watcher: ReadDirectoryChangesWatcher,
+    pub exit: bool,
+    pub main_layout: MainLayout,
+    pub watcher: ReadDirectoryChangesWatcher,
 }
 
 #[allow(clippy::single_match)]
 impl App {
-    pub fn new(
-        parse_result: ParseResult,
-        budget_items: Vec<BudgetItem>,
-        assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
-    ) -> App {
-        let assigned_transactions_clone = Arc::clone(&assigned_transactions);
-
-        let mut watcher: notify::ReadDirectoryChangesWatcher =
-            notify::recommended_watcher(move |res| {
-                let clone = Arc::clone(&assigned_transactions_clone);
-                match res {
-                    Ok(_) => {
-                        *clone.lock().unwrap() =
-                            parse_assigned_transactions_csv("assigned_transactions.csv").unwrap()
-                    }
-                    Err(_) => panic!(),
-                }
-            })
-            .unwrap();
-        watcher
-            .watch(
-                Path::new("assigned_transactions.csv"),
-                RecursiveMode::Recursive,
-            )
-            .unwrap();
-
-        App {
-            main_layout: MainLayout::init(parse_result, budget_items, assigned_transactions),
-            exit: false,
-            watcher,
-        }
-    }
     pub fn run(&mut self, terminal: &mut Tui) -> Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.render_frame(frame))?;

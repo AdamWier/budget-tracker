@@ -2,10 +2,10 @@ use std::io::Stdout;
 
 use ratatui::{backend::CrosstermBackend, Terminal};
 
-mod app;
+pub mod app;
+pub mod app_builder;
 mod components;
 pub mod errors;
 pub mod wrapper;
 
-pub type Tui = Terminal<CrosstermBackend<Stdout>>;
-pub use app::App;
+type Tui = Terminal<CrosstermBackend<Stdout>>;
