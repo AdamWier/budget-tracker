@@ -21,7 +21,7 @@ pub fn parse_transaction_csv(path: &str) -> Result<models::ParseResult> {
         parts
             .get(1)
             .with_context(|| format!("Could not get transactions parts for {}", path))?,
-    );
+    )?;
     let balance = get_balance(
         parts
             .first()
@@ -33,16 +33,16 @@ pub fn parse_transaction_csv(path: &str) -> Result<models::ParseResult> {
     })
 }
 
-fn get_transactions(information: &str) -> Vec<models::Transaction> {
+fn get_transactions(information: &str) -> Result<Vec<models::Transaction>> {
     let mut reader = ReaderBuilder::new()
         .delimiter(b';')
         .from_reader(information.as_bytes());
     let mut transactions = Vec::new();
     for result in reader.deserialize() {
-        let record: models::Transaction = result.unwrap();
+        let record: models::Transaction = result?;
         transactions.push(record)
     }
-    transactions
+    Ok(transactions)
 }
 
 fn get_balance(information: &str) -> f32 {
