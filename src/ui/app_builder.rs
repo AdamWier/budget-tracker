@@ -28,9 +28,10 @@ pub struct AppBuilder {
     budget_items: Option<Vec<BudgetItem>>,
     assigned_transactions: Option<Arc<Mutex<Vec<AssignedTransaction>>>>,
     watcher: Option<ReadDirectoryChangesWatcher>,
+    state: Option<State>,
 }
 
-impl AppBuilder {
+impl<'a> AppBuilder {
     pub fn init() -> Self {
         Self {
             ..Default::default()
@@ -73,7 +74,7 @@ impl AppBuilder {
         self.watcher = Some(watcher);
         self
     }
-    pub fn create_app(self) -> Result<App> {
+    pub fn create_state(&self) -> Result<State> {
         let state = State {
             assigned_transactions: self
                 .assigned_transactions
@@ -83,16 +84,10 @@ impl AppBuilder {
             blance: self.balance.context("No balance")?,
             budget_items: self.budget_items.clone().context("No budget items")?,
         };
-        let parse_result = ParseResult {
-            balance: state.blance.clone(),
-            transactions: state.transactions.clone(),
-        };
-        let main_layout = MainLayout::init(
-            parse_result,
-            self.budget_items.clone().context("No budget items")?,
-            self.assigned_transactions
-                .context("No assigned transactions")?,
-        );
+        Ok(state)
+    }
+    pub fn create_app(self, state: &'a State) -> Result<App<'a>> {
+        let main_layout = MainLayout::init(state);
 
         Ok(App {
             exit: false,

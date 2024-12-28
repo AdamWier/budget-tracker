@@ -89,7 +89,7 @@ impl TotalsLayout {
     }
 }
 
-impl Component for TotalsLayout {
+impl Component<'_> for TotalsLayout {
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         let size_for_each = 100_u16.saturating_div(self.sections);
         let mut constraints: Vec<Constraint> = Vec::new();

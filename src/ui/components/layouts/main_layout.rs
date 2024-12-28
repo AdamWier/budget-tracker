@@ -1,7 +1,4 @@
-use std::{
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::rc::Rc;
 
 use crossterm::event::Event;
 use ratatui::{
@@ -16,39 +13,34 @@ use super::{
     balance_layout::BalanceLayout, totals::TotalsLayout,
     transaction_assignment_layout::TransactionAssignmentLayout,
 };
-use crate::{
-    csv::models::{AssignedTransaction, BudgetItem, ParseResult},
-    ui::components::{reusable::tabs::TabsManager, Component},
+use crate::ui::{
+    app_builder::State,
+    components::{reusable::tabs::TabsManager, Component},
 };
 
 #[derive(Debug)]
-pub struct MainLayout {
-    transaction_assignment_layout: TransactionAssignmentLayout,
+pub struct MainLayout<'a> {
+    transaction_assignment_layout: TransactionAssignmentLayout<'a>,
     totals_layout: TotalsLayout,
     tabs_manager: TabsManager,
     balance_layout: BalanceLayout,
 }
 
-impl MainLayout {
-    pub fn init(
-        parse_result: ParseResult,
-        budget_items: Vec<BudgetItem>,
-        assigned_transactions_arc: Arc<Mutex<Vec<AssignedTransaction>>>,
-    ) -> Self {
+impl<'a> MainLayout<'a> {
+    pub fn init(state: &'a State) -> MainLayout<'a> {
         let tabs = ["Sorter", "Totals"];
 
         Self {
-            transaction_assignment_layout: TransactionAssignmentLayout::init(
-                parse_result.transactions,
-                budget_items.clone(),
-                &assigned_transactions_arc,
+            transaction_assignment_layout: TransactionAssignmentLayout::init(&state),
+            totals_layout: TotalsLayout::init(
+                state.budget_items.clone(),
+                &state.assigned_transactions,
             ),
-            totals_layout: TotalsLayout::init(budget_items.clone(), &assigned_transactions_arc),
             tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
             balance_layout: BalanceLayout::init(
-                budget_items.clone(),
-                &assigned_transactions_arc,
-                parse_result.balance,
+                state.budget_items.clone(),
+                &state.assigned_transactions,
+                state.blance,
             ),
         }
     }
@@ -60,7 +52,7 @@ impl MainLayout {
     }
 }
 
-impl Component for MainLayout {
+impl Component<'_> for MainLayout<'_> {
     fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
         self.transaction_assignment_layout.handle_events(event)?;
         self.tabs_manager.handle_events(event)

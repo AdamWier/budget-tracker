@@ -94,7 +94,7 @@ impl ScrollableList {
     }
 }
 
-impl Component for ScrollableList {
+impl Component<'_> for ScrollableList {
     fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> Result<()> {
         let code = key.code;
         match code {

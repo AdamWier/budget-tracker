@@ -28,14 +28,17 @@ fn main() -> Result<()> {
     ui::errors::install_hooks()?;
     let mut terminal = ui::wrapper::init()?;
 
-    let mut app = AppBuilder::init()
+    let app = AppBuilder::init()
         .add_assigned_transactions(assigned_transactions)
         .add_budget_items(budget_items)
         .add_parse_result(parse_result)
-        .create_watcher()
-        .create_app()?;
+        .create_watcher();
 
-    app.run(&mut terminal)
+    let state = app.create_state()?;
+    let mut app_2 = app.create_app(&state)?;
+
+    app_2
+        .run(&mut terminal)
         .map_err(|_| anyhow!("Failed to start application"))?;
 
     ui::wrapper::restore()?;

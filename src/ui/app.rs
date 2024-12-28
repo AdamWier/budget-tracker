@@ -4,19 +4,22 @@ use notify::{ReadDirectoryChangesWatcher, Watcher};
 use ratatui::prelude::*;
 use std::{io::Stdout, path::Path};
 
-use super::components::{layouts::main_layout::MainLayout, Component};
+use super::{
+    app_builder::State,
+    components::{layouts::main_layout::MainLayout, Component},
+};
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
 #[derive(Debug)]
-pub struct App {
+pub struct App<'a> {
     pub exit: bool,
-    pub main_layout: MainLayout,
+    pub main_layout: MainLayout<'a>,
     pub watcher: ReadDirectoryChangesWatcher,
 }
 
 #[allow(clippy::single_match)]
-impl App {
+impl App<'_> {
     pub fn run(&mut self, terminal: &mut Tui) -> Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.render_frame(frame))?;

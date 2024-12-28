@@ -59,7 +59,7 @@ impl BalanceLayout {
     }
 }
 
-impl Component for BalanceLayout {
+impl Component<'_> for BalanceLayout {
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         Layout::default()
             .direction(Direction::Horizontal)
