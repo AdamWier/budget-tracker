@@ -14,8 +14,8 @@ use super::{
     transaction_assignment_layout::TransactionAssignmentLayout,
 };
 use crate::ui::{
-    app_builder::State,
     components::{reusable::tabs::TabsManager, Component},
+    state::State,
 };
 
 #[derive(Debug)]

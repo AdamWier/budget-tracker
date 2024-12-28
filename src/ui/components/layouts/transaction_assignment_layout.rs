@@ -13,8 +13,8 @@ use crate::{
         persister::persist_association,
     },
     ui::{
-        app_builder::State,
         components::{reusable::scrollable_list::ScrollableList, Component},
+        state::State,
     },
 };
 

@@ -10,13 +10,20 @@ pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
 #[derive(Debug)]
 pub struct App<'a> {
-    pub exit: bool,
-    pub main_layout: MainLayout<'a>,
-    pub watcher: ReadDirectoryChangesWatcher,
+    exit: bool,
+    main_layout: MainLayout<'a>,
+    watcher: ReadDirectoryChangesWatcher,
 }
 
 #[allow(clippy::single_match)]
-impl App<'_> {
+impl<'a> App<'a> {
+    pub fn new(main_layout: MainLayout<'a>, watcher: ReadDirectoryChangesWatcher) -> App<'a> {
+        Self {
+            exit: false,
+            main_layout,
+            watcher,
+        }
+    }
     pub fn run(&mut self, terminal: &mut Tui) -> Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.render_frame(frame))?;
