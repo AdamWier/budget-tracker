@@ -21,9 +21,9 @@ use crate::ui::{
 #[derive(Debug)]
 pub struct MainLayout<'a> {
     transaction_assignment_layout: TransactionAssignmentLayout<'a>,
-    totals_layout: TotalsLayout,
+    totals_layout: TotalsLayout<'a>,
     tabs_manager: TabsManager,
-    balance_layout: BalanceLayout,
+    balance_layout: BalanceLayout<'a>,
 }
 
 impl<'a> MainLayout<'a> {
@@ -32,16 +32,9 @@ impl<'a> MainLayout<'a> {
 
         Self {
             transaction_assignment_layout: TransactionAssignmentLayout::init(state),
-            totals_layout: TotalsLayout::init(
-                state.budget_items.clone(),
-                &state.assigned_transactions,
-            ),
+            totals_layout: TotalsLayout::init(state),
             tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
-            balance_layout: BalanceLayout::init(
-                state.budget_items.clone(),
-                &state.assigned_transactions,
-                state.blance,
-            ),
+            balance_layout: BalanceLayout::init(state),
         }
     }
     fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {
