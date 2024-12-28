@@ -2,6 +2,8 @@ mod csv;
 mod ui;
 mod utils;
 
+use std::sync::{Arc, Mutex};
+
 use anyhow::{anyhow, Result};
 use csv::{
     parsers::{assigned_transactions, budget_csv, transaction_csv},
@@ -9,7 +11,7 @@ use csv::{
         budget_items::add_spending_money, transactions::remove_already_processed_items,
     },
 };
-use ui::app_builder::AppBuilder;
+use ui::app_builder::{AppBuilder, State};
 
 const ASSIGNED_TRANSACTIONS_FILE_NAME: &str = "assigned_transactions.csv";
 const NEW_TRANSACTIONS_FILE_NAME: &str = "new.csv";
@@ -28,16 +30,16 @@ fn main() -> Result<()> {
     ui::errors::install_hooks()?;
     let mut terminal = ui::wrapper::init()?;
 
-    let app = AppBuilder::init()
-        .add_assigned_transactions(assigned_transactions)
-        .add_budget_items(budget_items)
-        .add_parse_result(parse_result)
-        .create_watcher();
+    let state = State {
+        assigned_transactions: Arc::new(Mutex::new(assigned_transactions)),
+        transactions: parse_result.transactions,
+        blance: parse_result.balance,
+        budget_items,
+    };
 
-    let state = app.create_state()?;
-    let mut app_2 = app.create_app(&state)?;
-
-    app_2
+    AppBuilder::init()
+        .create_watcher()
+        .create_app(&state)?
         .run(&mut terminal)
         .map_err(|_| anyhow!("Failed to start application"))?;
 

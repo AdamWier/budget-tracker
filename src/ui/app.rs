@@ -4,10 +4,7 @@ use notify::{ReadDirectoryChangesWatcher, Watcher};
 use ratatui::prelude::*;
 use std::{io::Stdout, path::Path};
 
-use super::{
-    app_builder::State,
-    components::{layouts::main_layout::MainLayout, Component},
-};
+use super::components::{layouts::main_layout::MainLayout, Component};
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 

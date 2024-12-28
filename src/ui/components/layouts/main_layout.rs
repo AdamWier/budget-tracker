@@ -31,7 +31,7 @@ impl<'a> MainLayout<'a> {
         let tabs = ["Sorter", "Totals"];
 
         Self {
-            transaction_assignment_layout: TransactionAssignmentLayout::init(&state),
+            transaction_assignment_layout: TransactionAssignmentLayout::init(state),
             totals_layout: TotalsLayout::init(
                 state.budget_items.clone(),
                 &state.assigned_transactions,

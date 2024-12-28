@@ -1,7 +1,4 @@
-use std::{
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::rc::Rc;
 
 use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
@@ -12,9 +9,7 @@ use ratatui::{
 
 use crate::{
     csv::{
-        models::{
-            list_item::ListItem, AssignedTransaction, BudgetItem, BudgetItemType, Transaction,
-        },
+        models::{list_item::ListItem, BudgetItemType},
         persister::persist_association,
     },
     ui::{
