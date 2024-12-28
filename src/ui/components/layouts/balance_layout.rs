@@ -1,7 +1,4 @@
-use std::{
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::rc::Rc;
 
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -12,7 +9,7 @@ use ratatui::{
 };
 
 use crate::{
-    csv::models::{AssignedTransaction, BudgetItem, BudgetItemType},
+    csv::models::{BudgetItem, BudgetItemType},
     ui::{components::Component, state::State},
 };
 

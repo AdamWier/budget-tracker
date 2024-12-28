@@ -9,8 +9,8 @@ use notify::{ReadDirectoryChangesWatcher, RecursiveMode, Watcher};
 use crate::{
     consts::ASSIGNED_TRANSACTIONS_FILE_NAME,
     csv::{
-        models::{AssignedTransaction, BudgetItem, Transaction},
-        parsers::assigned_transactions::{self, parse_assigned_transactions_csv},
+        models::AssignedTransaction,
+        parsers::assigned_transactions::parse_assigned_transactions_csv,
     },
 };
 

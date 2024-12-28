@@ -2,7 +2,6 @@ use std::{
     collections::BTreeMap,
     ops::Mul,
     rc::Rc,
-    sync::{Arc, Mutex},
 };
 
 use chrono::{Datelike, Local};
@@ -15,7 +14,7 @@ use ratatui::{
 };
 
 use crate::{
-    csv::models::{AssignedTransaction, BudgetItem, BudgetItemType},
+    csv::models::{AssignedTransaction, BudgetItemType},
     ui::{
         components::{reusable::chart::RatatuiChart, Component},
         state::State,
