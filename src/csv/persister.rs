@@ -1,13 +1,32 @@
-use std::fs::OpenOptions;
+use std::{
+    fs::OpenOptions,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{Context, Result};
 use csv::Writer;
 
-use crate::csv::models::list_item::ListItem;
+use crate::{
+    consts::ASSIGNED_TRANSACTIONS_FILE_NAME,
+    csv::{
+        models::{list_item::ListItem, AssignedTransaction},
+        parsers::assigned_transactions::parse_assigned_transactions_csv,
+    },
+};
 
-pub fn persist_association<T: ListItem + ?Sized>(transaction: &T, budget_item: &T) -> Result<()> {
+pub fn persist_association<T: ListItem + ?Sized>(
+    transaction: &T,
+    budget_item: &T,
+    assigned_transactions: &Arc<Mutex<Vec<AssignedTransaction>>>,
+) -> Result<()> {
     let record = create_record(transaction, budget_item);
-    append_to_file("assigned_transactions.csv", &record)
+    append_to_file(ASSIGNED_TRANSACTIONS_FILE_NAME, &record)?;
+    let mut assigned_transactions = assigned_transactions.lock().unwrap();
+    assigned_transactions.clear();
+    parse_assigned_transactions_csv(ASSIGNED_TRANSACTIONS_FILE_NAME)?
+        .into_iter()
+        .for_each(|x| assigned_transactions.push(x));
+    Ok(())
 }
 
 fn create_record<T: ListItem + ?Sized>(transaction: &T, budget_item: &T) -> Vec<String> {

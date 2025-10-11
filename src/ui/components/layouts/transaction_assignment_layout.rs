@@ -65,7 +65,12 @@ impl TransactionAssignmentLayout<'_> {
         if budget_item.is_none() || transaction_item.is_none() {
             return;
         }
-        persist_association(budget_item.unwrap(), transaction_item.unwrap()).unwrap();
+        persist_association(
+            budget_item.unwrap(),
+            transaction_item.unwrap(),
+            &self.state.assigned_transactions,
+        )
+        .unwrap();
         self.transaction_list.remove_selected_item();
     }
     fn handle_enter_key(&mut self) {
