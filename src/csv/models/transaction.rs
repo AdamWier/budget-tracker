@@ -12,10 +12,12 @@ pub struct Transaction {
     #[serde(rename = "Libellé")]
     pub label: String,
     #[serde(
-        rename = "Montant(EUROS)",
+        rename = "Montant",
         deserialize_with = "deserializers::deserialize_amount"
     )]
     pub amount: f32,
+    #[serde(alias = "Solde")]
+    pub balance: f32,
 }
 
 impl ListItem for Transaction {
