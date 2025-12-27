@@ -3,7 +3,11 @@ mod csv;
 mod ui;
 mod utils;
 
-use std::sync::{Arc, Mutex};
+use std::{
+    fs::{create_dir_all, read_dir},
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{anyhow, Result};
 use consts::{ASSIGNED_TRANSACTIONS_FILE_NAME, BUDGET_FILE_NAME, NEW_TRANSACTIONS_FILE_NAME};
@@ -13,9 +17,12 @@ use csv::{
         budget_items::add_spending_money, transactions::remove_already_processed_items,
     },
 };
+use itertools::Itertools;
 use ui::{app_builder::AppBuilder, state::State};
 
 fn main() -> Result<()> {
+    create_dir_all("./cycles").unwrap();
+    let files: Vec<PathBuf> = read_dir("./cycles")?.map_ok(|x| x.path()).try_collect()?;
     let assigned_transactions =
         assigned_transactions::parse_assigned_transactions_csv(ASSIGNED_TRANSACTIONS_FILE_NAME)?;
     let mut parse_result = transaction_csv::parse_transaction_csv(NEW_TRANSACTIONS_FILE_NAME)?;
@@ -29,6 +36,8 @@ fn main() -> Result<()> {
     let assigned_transactions_arc = Arc::new(Mutex::new(assigned_transactions));
 
     let state = State {
+        files,
+        currently_selected_files: Arc::new(Mutex::new(PathBuf::new())),
         assigned_transactions: assigned_transactions_arc,
         transactions: parse_result.transactions,
         blance: parse_result.balance,

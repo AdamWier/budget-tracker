@@ -14,7 +14,7 @@ use super::{
     transaction_assignment_layout::TransactionAssignmentLayout,
 };
 use crate::ui::{
-    components::{reusable::tabs::TabsManager, Component},
+    components::{layouts::cycles_layout::CyclesLayout, reusable::tabs::TabsManager, Component},
     state::State,
 };
 
@@ -24,17 +24,19 @@ pub struct MainLayout<'a> {
     totals_layout: TotalsLayout<'a>,
     tabs_manager: TabsManager,
     balance_layout: BalanceLayout<'a>,
+    cycles_layout: CyclesLayout<'a>,
 }
 
 impl<'a> MainLayout<'a> {
     pub fn init(state: &'a State) -> MainLayout<'a> {
-        let tabs = ["Sorter", "Totals"];
+        let tabs = ["Cycles", "Sorter", "Totals"];
 
         Self {
             transaction_assignment_layout: TransactionAssignmentLayout::init(state),
             totals_layout: TotalsLayout::init(state),
             tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
             balance_layout: BalanceLayout::init(state),
+            cycles_layout: CyclesLayout::init(state),
         }
     }
     fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {
@@ -81,10 +83,11 @@ impl Component<'_> for MainLayout<'_> {
 
         frame.render_widget(title, title_chunk);
         match self.tabs_manager.selected_tab_index {
-            0 => self
+            0 => self.cycles_layout.render(frame, transaction_chunk),
+            1 => self
                 .transaction_assignment_layout
                 .render(frame, transaction_chunk),
-            1 => self.totals_layout.render(frame, transaction_chunk),
+            2 => self.totals_layout.render(frame, transaction_chunk),
             _ => panic!(),
         }
         self.tabs_manager.render(frame, tabs_chunk);
