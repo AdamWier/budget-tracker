@@ -12,20 +12,16 @@ use ratatui::{
 use crate::{csv::models::list_item::ListItem, ui::components::Component};
 
 #[derive(Debug)]
-pub struct ScrollableList {
-    list_items: Vec<Box<dyn ListItem>>,
+pub struct ScrollableList<T: PartialEq + ListItem<T>> {
+    list_items: Vec<T>,
     list_state: ListState,
     list_screen_lines: usize,
     down_button: KeyCode,
     up_button: KeyCode,
 }
 
-impl ScrollableList {
-    pub fn init(
-        list_items: Vec<Box<dyn ListItem>>,
-        up_button: KeyCode,
-        down_button: KeyCode,
-    ) -> Self {
+impl<T: PartialEq + ListItem<T>> ScrollableList<T> {
+    pub fn init(list_items: Vec<T>, up_button: KeyCode, down_button: KeyCode) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
 
@@ -37,10 +33,10 @@ impl ScrollableList {
             list_screen_lines: 0,
         }
     }
-    pub fn get_selected_item(&self) -> Option<&dyn ListItem> {
+    pub fn get_selected_item(&self) -> Option<&T> {
         self.list_state
             .selected()
-            .and_then(|x| Some(self.list_items.get(x)?.as_ref()))
+            .and_then(|x| Some(self.list_items.get(x)?))
     }
     fn scroll_down(&mut self) -> Result<()> {
         let transaction_list_max = self.list_items.len().saturating_sub(self.list_screen_lines);
@@ -89,12 +85,12 @@ impl ScrollableList {
             .expect("Item was not found");
         self.list_items.remove(index);
     }
-    pub fn update_list_items(&mut self, list_items: Vec<Box<dyn ListItem>>) {
+    pub fn update_list_items(&mut self, list_items: Vec<T>) {
         self.list_items = list_items;
     }
 }
 
-impl Component<'_> for ScrollableList {
+impl<T: PartialEq + ListItem<T>> Component<'_> for ScrollableList<T> {
     fn handle_key_events(&mut self, key: &crossterm::event::KeyEvent) -> Result<()> {
         let code = key.code;
         match code {

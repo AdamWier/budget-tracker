@@ -20,9 +20,21 @@ use csv::{
 use itertools::Itertools;
 use ui::{app_builder::AppBuilder, state::State};
 
+use crate::csv::models::CycleFile;
+
 fn main() -> Result<()> {
     create_dir_all("./cycles").unwrap();
-    let files: Vec<PathBuf> = read_dir("./cycles")?.map_ok(|x| x.path()).try_collect()?;
+    let files: Vec<CycleFile> = read_dir("./cycles")?
+        .map_ok(|x| x.path())
+        .map_ok(|x| CycleFile {
+            path: x.clone(),
+            list_label: x.as_os_str().to_str().unwrap().to_string(),
+        })
+        .try_collect()?;
+    let current_file = CycleFile {
+        path: PathBuf::new(),
+        list_label: String::from("This is a fake file"),
+    };
     let assigned_transactions =
         assigned_transactions::parse_assigned_transactions_csv(ASSIGNED_TRANSACTIONS_FILE_NAME)?;
     let mut parse_result = transaction_csv::parse_transaction_csv(NEW_TRANSACTIONS_FILE_NAME)?;
@@ -37,7 +49,7 @@ fn main() -> Result<()> {
 
     let state = State {
         files,
-        currently_selected_files: Arc::new(Mutex::new(PathBuf::new())),
+        current_file: Arc::new(Mutex::new(current_file)),
         assigned_transactions: assigned_transactions_arc,
         transactions: parse_result.transactions,
         blance: parse_result.balance,
@@ -45,7 +57,7 @@ fn main() -> Result<()> {
     };
 
     AppBuilder::init()
-        .create_watcher(&state.assigned_transactions)
+        .create_assigned_transaction_watcher(&state.assigned_transactions)
         .create_app(&state)?
         .run(&mut terminal)
         .map_err(|_| anyhow!("Failed to start application"))?;

@@ -27,7 +27,7 @@ impl<'a> AppBuilder {
             ..Default::default()
         }
     }
-    pub fn create_watcher(
+    pub fn create_assigned_transaction_watcher(
         mut self,
         assigned_transactions: &Arc<Mutex<Vec<AssignedTransaction>>>,
     ) -> Self {

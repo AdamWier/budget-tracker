@@ -5,7 +5,7 @@ use super::comparable_transaction::ComparableTransaction;
 use super::deserializers;
 use super::list_item::ListItem;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Transaction {
     pub date: String,
@@ -20,16 +20,12 @@ pub struct Transaction {
     pub balance: f32,
 }
 
-impl ListItem for Transaction {
+impl ListItem<Transaction> for Transaction {
     fn get_list_label(&self) -> ratatui::prelude::Text {
         Text::raw(format!("{} - {} - {}", self.date, self.label, self.amount))
     }
-    fn get_savable_value(&self) -> Vec<String> {
-        vec![
-            self.date.to_string(),
-            self.label.to_string(),
-            self.amount.to_string(),
-        ]
+    fn get_savable_value(&self) -> Transaction {
+        self.clone()
     }
 }
 

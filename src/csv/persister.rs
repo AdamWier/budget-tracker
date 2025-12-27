@@ -9,17 +9,17 @@ use csv::Writer;
 use crate::{
     consts::ASSIGNED_TRANSACTIONS_FILE_NAME,
     csv::{
-        models::{list_item::ListItem, AssignedTransaction},
+        models::{AssignedTransaction, BudgetItem, Transaction},
         parsers::assigned_transactions::parse_assigned_transactions_csv,
     },
 };
 
-pub fn persist_association<T: ListItem + ?Sized>(
-    transaction: &T,
-    budget_item: &T,
+pub fn persist_association(
+    budget_item: BudgetItem,
+    transaction: Transaction,
     assigned_transactions: &Arc<Mutex<Vec<AssignedTransaction>>>,
 ) -> Result<()> {
-    let record = create_record(transaction, budget_item);
+    let record = create_record(&transaction, &budget_item);
     append_to_file(ASSIGNED_TRANSACTIONS_FILE_NAME, &record)?;
     let mut assigned_transactions = assigned_transactions.lock().unwrap();
     assigned_transactions.clear();
@@ -29,10 +29,14 @@ pub fn persist_association<T: ListItem + ?Sized>(
     Ok(())
 }
 
-fn create_record<T: ListItem + ?Sized>(transaction: &T, budget_item: &T) -> Vec<String> {
-    let transaction_save_value = transaction.get_savable_value();
-    let budget_save_value = budget_item.get_savable_value();
-    [transaction_save_value, budget_save_value].concat()
+fn create_record(transaction: &Transaction, budget_item: &BudgetItem) -> Vec<String> {
+    [
+        String::from(budget_item.code.clone()),
+        transaction.date.to_string(),
+        transaction.label.to_string(),
+        transaction.amount.to_string(),
+    ]
+    .to_vec()
 }
 
 fn append_to_file(path: &str, record: &Vec<String>) -> Result<()> {

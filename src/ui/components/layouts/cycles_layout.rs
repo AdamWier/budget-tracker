@@ -1,15 +1,14 @@
-use std::{path::PathBuf, rc::Rc};
+use std::rc::Rc;
 
 use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
-use itertools::Itertools;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     Frame,
 };
 
 use crate::{
-    csv::models::list_item::ListItem,
+    csv::models::{list_item::ListItem, CycleFile},
     ui::{
         components::{reusable::scrollable_list::ScrollableList, Component},
         state::State,
@@ -18,41 +17,23 @@ use crate::{
 
 #[derive(Debug)]
 pub struct CyclesLayout<'a> {
-    cycle_list: ScrollableList,
+    cycle_list: ScrollableList<CycleFile>,
     state: &'a State,
-}
-
-impl ListItem for PathBuf {
-    fn get_list_label(&self) -> ratatui::prelude::Text {
-        ratatui::text::Text::raw(self.file_name().unwrap().to_str().unwrap().to_string())
-    }
-    fn get_savable_value(&self) -> Vec<String> {
-        vec![self.file_name().unwrap().to_str().unwrap().to_string()]
-    }
 }
 
 impl CyclesLayout<'_> {
     pub fn init(state: &'_ State) -> CyclesLayout<'_> {
-        let cycle_file_names = state
-            .files
-            .clone()
-            .into_iter()
-            .map(|x| Box::new(x) as Box<dyn ListItem>)
-            .collect_vec();
-
         CyclesLayout {
-            cycle_list: ScrollableList::init(cycle_file_names, KeyCode::Up, KeyCode::Down),
+            cycle_list: ScrollableList::init(state.files.clone(), KeyCode::Up, KeyCode::Down),
             state,
         }
     }
-    fn change_cycle(&mut self) {
-        *self.state.currently_selected_files.lock().unwrap() = PathBuf::from(
+    fn change_cycle(&self) {
+        self.state.update_current_file(
             self.cycle_list
                 .get_selected_item()
                 .unwrap()
-                .get_savable_value()
-                .first()
-                .unwrap(),
+                .get_savable_value(),
         );
     }
     fn handle_enter_key(&mut self) {

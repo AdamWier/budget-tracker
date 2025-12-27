@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
+use itertools::Itertools;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     Frame,
@@ -9,7 +10,7 @@ use ratatui::{
 
 use crate::{
     csv::{
-        models::{list_item::ListItem, BudgetItemType},
+        models::{list_item::ListItem, BudgetItem, BudgetItemType, Transaction},
         persister::persist_association,
     },
     ui::{
@@ -20,20 +21,19 @@ use crate::{
 
 #[derive(Debug)]
 pub struct TransactionAssignmentLayout<'a> {
-    transaction_list: ScrollableList,
-    budget_list: ScrollableList,
+    transaction_list: ScrollableList<Transaction>,
+    budget_list: ScrollableList<BudgetItem>,
     state: &'a State,
 }
 
 impl TransactionAssignmentLayout<'_> {
     pub fn init(state: &'_ State) -> TransactionAssignmentLayout<'_> {
-        let mut boxed_transactions = Vec::new();
-        for item in state.transactions.clone().into_iter() {
-            boxed_transactions.push(Box::new(item) as Box<dyn ListItem>)
-        }
-
         TransactionAssignmentLayout {
-            transaction_list: ScrollableList::init(boxed_transactions, KeyCode::Up, KeyCode::Down),
+            transaction_list: ScrollableList::init(
+                state.transactions.clone(),
+                KeyCode::Up,
+                KeyCode::Down,
+            ),
             budget_list: ScrollableList::init(Vec::new(), KeyCode::Char('8'), KeyCode::Char('2')),
             state,
         }
@@ -47,17 +47,15 @@ impl TransactionAssignmentLayout<'_> {
             .iter()
             .map(|x| x.code.to_string())
             .collect();
-        let budget_items_left =
-            self.state.budget_items.clone().into_iter().filter(|x| {
-                x.setting == BudgetItemType::MULTI || !assigned_codes.contains(&x.code)
-            });
+        let budget_items_left = self
+            .state
+            .budget_items
+            .clone()
+            .into_iter()
+            .filter(|x| x.setting == BudgetItemType::MULTI || !assigned_codes.contains(&x.code))
+            .collect_vec();
 
-        let mut boxed_budget_items = Vec::new();
-        for item in budget_items_left.into_iter().filter(|x| x.code != "SAL") {
-            boxed_budget_items.push(Box::new(item) as Box<dyn ListItem>)
-        }
-
-        self.budget_list.update_list_items(boxed_budget_items)
+        self.budget_list.update_list_items(budget_items_left)
     }
     fn assign_item(&mut self) {
         let transaction_item = self.transaction_list.get_selected_item();
@@ -66,8 +64,8 @@ impl TransactionAssignmentLayout<'_> {
             return;
         }
         persist_association(
-            budget_item.unwrap(),
-            transaction_item.unwrap(),
+            budget_item.unwrap().get_savable_value(),
+            transaction_item.unwrap().get_savable_value(),
             &self.state.assigned_transactions,
         )
         .unwrap();
