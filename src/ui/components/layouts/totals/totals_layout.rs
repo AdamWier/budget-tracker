@@ -1,8 +1,4 @@
-use std::{
-    collections::BTreeMap,
-    ops::Mul,
-    rc::Rc,
-};
+use std::{collections::BTreeMap, ops::Mul, rc::Rc};
 
 use chrono::{Datelike, Local};
 use ratatui::{
