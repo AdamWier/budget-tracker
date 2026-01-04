@@ -1,18 +1,25 @@
-use std::sync::{Arc, Mutex};
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use anyhow::{Context, Result};
 use notify::{ReadDirectoryChangesWatcher, RecursiveMode, Watcher};
 
-use crate::csv::{
-    models::{AssignedTransaction, CycleFile},
-    parsers::assigned_transactions::parse_assigned_transactions_csv,
+use crate::{
+    csv::{
+        models::{AssignedTransaction, CycleFile},
+        parsers::assigned_transactions::parse_assigned_transactions_csv,
+    },
+    start_up::get_file_list,
 };
 
 use super::{app::App, components::layouts::main_layout::MainLayout, state::State};
 
 #[derive(Debug, Default)]
 pub struct AppBuilder {
-    watcher: Option<ReadDirectoryChangesWatcher>,
+    assigned_transactions_watcher: Option<ReadDirectoryChangesWatcher>,
+    cycle_files_watcher: Option<ReadDirectoryChangesWatcher>,
 }
 
 impl<'a> AppBuilder {
@@ -44,7 +51,21 @@ impl<'a> AppBuilder {
                 RecursiveMode::Recursive,
             )
             .unwrap();
-        self.watcher = Some(watcher);
+        self.assigned_transactions_watcher = Some(watcher);
+        self
+    }
+    pub fn create_cycle_file_watcher(mut self, cycle_files: &Arc<Mutex<Vec<CycleFile>>>) -> Self {
+        let cycle_files_clone = cycle_files.clone();
+        let mut watcher: notify::ReadDirectoryChangesWatcher =
+            notify::recommended_watcher(move |res| match res {
+                Ok(_) => *cycle_files_clone.lock().unwrap() = get_file_list().unwrap(),
+                Err(_) => panic!(),
+            })
+            .unwrap();
+        watcher
+            .watch(Path::new("./cycles"), RecursiveMode::Recursive)
+            .unwrap();
+        self.cycle_files_watcher = Some(watcher);
         self
     }
     pub fn create_app(self, state: &'a State) -> Result<App<'a>> {
@@ -52,7 +73,10 @@ impl<'a> AppBuilder {
 
         Ok(App::new(
             main_layout,
-            self.watcher.context("No watcher created")?,
+            self.assigned_transactions_watcher
+                .context("No assigned files watcher created")?,
+            self.cycle_files_watcher
+                .context("No cycle files watcher created")?,
         ))
     }
 }

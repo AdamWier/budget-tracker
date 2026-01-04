@@ -56,6 +56,7 @@ fn main() -> Result<()> {
 
     AppBuilder::init()
         .create_assigned_transaction_watcher(&state.assigned_transactions, &state.current_file)
+        .create_cycle_file_watcher(&state.files)
         .create_app(&state)?
         .run(&mut terminal)
         .map_err(|_| anyhow!("Failed to start application"))?;

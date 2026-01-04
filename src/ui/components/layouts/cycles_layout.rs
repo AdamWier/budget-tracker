@@ -24,11 +24,18 @@ pub struct CyclesLayout<'a> {
 
 impl CyclesLayout<'_> {
     pub fn init(state: &'_ State) -> CyclesLayout<'_> {
+        CyclesLayout {
+            cycle_list: ScrollableList::init(Vec::new(), KeyCode::Up, KeyCode::Down),
+            state,
+        }
+    }
+    fn update_file_choices(&mut self) {
         let new_file_choice = CycleFile {
             path: PathBuf::new(),
             list_label: "Start a new cycle".to_string(),
         };
-        let file_choices = state
+        let file_choices = self
+            .state
             .files
             .lock()
             .unwrap()
@@ -36,10 +43,7 @@ impl CyclesLayout<'_> {
             .into_iter()
             .chain([new_file_choice].into_iter())
             .collect_vec();
-        CyclesLayout {
-            cycle_list: ScrollableList::init(file_choices, KeyCode::Up, KeyCode::Down),
-            state,
-        }
+        self.cycle_list.update_list_items(file_choices);
     }
     fn change_cycle(&self) {
         self.state.update_current_file(
@@ -74,6 +78,7 @@ impl Component<'_> for CyclesLayout<'_> {
             .split(area)
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
+        self.update_file_choices();
         let [layout] = *self.get_layout(area) else {
             panic!()
         };
