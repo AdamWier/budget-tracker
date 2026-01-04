@@ -7,6 +7,7 @@ use anyhow::{Context, Result};
 use notify::{ReadDirectoryChangesWatcher, RecursiveMode, Watcher};
 
 use crate::{
+    consts::CYCLES_FOLDER,
     csv::{
         models::{AssignedTransaction, CycleFile},
         parsers::assigned_transactions::parse_assigned_transactions_csv,
@@ -63,7 +64,7 @@ impl<'a> AppBuilder {
             })
             .unwrap();
         watcher
-            .watch(Path::new("./cycles"), RecursiveMode::Recursive)
+            .watch(Path::new(CYCLES_FOLDER), RecursiveMode::Recursive)
             .unwrap();
         self.cycle_files_watcher = Some(watcher);
         self

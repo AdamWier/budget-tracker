@@ -21,10 +21,10 @@ use csv::{
 use itertools::Itertools;
 use ui::{app_builder::AppBuilder, state::State};
 
-use crate::start_up::get_file_list;
+use crate::{consts::CYCLES_FOLDER, start_up::get_file_list};
 
 fn main() -> Result<()> {
-    create_dir_all("./cycles")?;
+    create_dir_all(CYCLES_FOLDER)?;
 
     let file_list = get_file_list()?;
     let current_file = file_list.first().cloned().context("No files in list")?;

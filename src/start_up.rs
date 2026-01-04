@@ -3,10 +3,10 @@ use std::fs::read_dir;
 use anyhow::Result;
 use itertools::Itertools;
 
-use crate::csv::models::CycleFile;
+use crate::{consts::CYCLES_FOLDER, csv::models::CycleFile};
 
 pub fn get_file_list() -> Result<Vec<CycleFile>> {
-    let files: Vec<CycleFile> = read_dir("./cycles")?
+    let files: Vec<CycleFile> = read_dir(CYCLES_FOLDER)?
         .map_ok(|x| x.path())
         .map_ok(|x| CycleFile {
             path: x.clone(),
