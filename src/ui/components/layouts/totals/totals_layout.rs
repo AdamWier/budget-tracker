@@ -14,7 +14,7 @@ use ratatui::{
 use crate::{
     csv::models::{BudgetItem, BudgetItemType},
     ui::{
-        components::{reusable::chart::RatatuiChart, Component},
+        components::{reusable::chart::RatatuiChart, Component, Tab},
         state::State,
     },
     utils::get_days_in_current_month,
@@ -142,5 +142,11 @@ impl Component<'_> for TotalsLayout<'_> {
         charts
             .enumerate()
             .for_each(|(index, paragraph)| paragraph.draw_chart(frame, layout[(index * 2) + 1]))
+    }
+}
+
+impl Tab for TotalsLayout<'_> {
+    fn get_name(&self) -> String {
+        "Totals".to_string()
     }
 }

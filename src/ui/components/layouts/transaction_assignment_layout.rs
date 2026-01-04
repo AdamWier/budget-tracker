@@ -14,7 +14,7 @@ use crate::{
         persister::persist_association,
     },
     ui::{
-        components::{reusable::scrollable_list::ScrollableList, Component},
+        components::{reusable::scrollable_list::ScrollableList, Component, Tab},
         state::State,
     },
 };
@@ -104,5 +104,11 @@ impl Component<'_> for TransactionAssignmentLayout<'_> {
         };
         self.budget_list.render(frame, budget_chunk);
         self.transaction_list.render(frame, transaction_chunk);
+    }
+}
+
+impl Tab for TransactionAssignmentLayout<'_> {
+    fn get_name(&self) -> String {
+        "Sorter".to_string()
     }
 }

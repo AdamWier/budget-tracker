@@ -8,7 +8,6 @@ use super::components::{layouts::main_layout::MainLayout, Component};
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
-#[derive(Debug)]
 pub struct App<'a> {
     exit: bool,
     main_layout: MainLayout<'a>,

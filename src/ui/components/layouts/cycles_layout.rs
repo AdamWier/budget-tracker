@@ -11,7 +11,7 @@ use ratatui::{
 use crate::{
     csv::models::{list_item::ListItem, CycleFile},
     ui::{
-        components::{reusable::scrollable_list::ScrollableList, Component},
+        components::{reusable::scrollable_list::ScrollableList, Component, Tab},
         state::State,
     },
 };
@@ -84,5 +84,11 @@ impl Component<'_> for CyclesLayout<'_> {
             panic!()
         };
         self.cycle_list.render(frame, layout);
+    }
+}
+
+impl Tab for CyclesLayout<'_> {
+    fn get_name(&self) -> String {
+        "Cycles".to_string()
     }
 }

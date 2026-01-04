@@ -36,3 +36,7 @@ pub trait Component<'a> {
         Ok(())
     }
 }
+
+pub trait Tab: for<'a> Component<'a> {
+    fn get_name(&self) -> String;
+}
