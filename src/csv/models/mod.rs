@@ -3,7 +3,6 @@ mod budget_item;
 mod budget_item_type;
 mod comparable_transaction;
 mod cycle_file;
-mod deserializers;
 pub mod list_item;
 mod transaction;
 

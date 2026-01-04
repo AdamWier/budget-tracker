@@ -146,7 +146,7 @@ impl Component<'_> for TotalsLayout<'_> {
             ))
             .alignment(Alignment::Center)]);
 
-        //Sections must be set before getting layout => Change to pass sections as param
+        //Sections must be set before getting layout
         self.set_sections((paragraphs_for_total.len() * 2) as u16);
         let layout = self.get_layout(area);
         paragraphs_for_total

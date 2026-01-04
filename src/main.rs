@@ -2,7 +2,6 @@ mod consts;
 mod csv;
 mod start_up;
 mod ui;
-mod utils;
 
 use std::{
     fs::create_dir_all,

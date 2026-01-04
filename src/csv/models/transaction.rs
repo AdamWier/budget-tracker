@@ -2,7 +2,6 @@ use ratatui::text::Text;
 use serde::Deserialize;
 
 use super::comparable_transaction::ComparableTransaction;
-use super::deserializers;
 use super::list_item::ListItem;
 
 #[derive(Debug, Deserialize, Clone, PartialEq)]
@@ -11,10 +10,7 @@ pub struct Transaction {
     pub date: String,
     #[serde(rename = "Libellé")]
     pub label: String,
-    #[serde(
-        rename = "Montant",
-        deserialize_with = "deserializers::deserialize_amount"
-    )]
+    #[serde(rename = "Montant")]
     pub amount: f32,
     #[serde(alias = "Solde")]
     pub balance: f32,
