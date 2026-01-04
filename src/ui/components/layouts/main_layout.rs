@@ -25,6 +25,7 @@ pub struct MainLayout<'a> {
     tabs_manager: TabsManager,
     balance_layout: BalanceLayout<'a>,
     cycles_layout: CyclesLayout<'a>,
+    state: &'a State,
 }
 
 impl<'a> MainLayout<'a> {
@@ -37,6 +38,7 @@ impl<'a> MainLayout<'a> {
             tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
             balance_layout: BalanceLayout::init(state),
             cycles_layout: CyclesLayout::init(state),
+            state,
         }
     }
     fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {
@@ -73,7 +75,10 @@ impl Component<'_> for MainLayout<'_> {
             .style(Style::default().fg(Color::Rgb(255, 176, 0)));
 
         let title = Paragraph::new(Text::styled(
-            "World's Best Budget Manager",
+            format!(
+                "World's Best Budget Manager (Current file: {})",
+                self.state.current_file.lock().unwrap().list_label
+            ),
             Style::default().fg(Color::Rgb(255, 176, 0)),
         ))
         .alignment(Alignment::Center)
