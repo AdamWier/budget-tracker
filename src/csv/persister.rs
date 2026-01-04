@@ -1,29 +1,33 @@
 use std::{
     fs::OpenOptions,
+    path::PathBuf,
     sync::{Arc, Mutex},
 };
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use csv::Writer;
 
-use crate::{
-    consts::ASSIGNED_TRANSACTIONS_FILE_NAME,
-    csv::{
-        models::{AssignedTransaction, BudgetItem, Transaction},
-        parsers::assigned_transactions::parse_assigned_transactions_csv,
-    },
+use crate::csv::{
+    models::{AssignedTransaction, BudgetItem, CycleFile, Transaction},
+    parsers::assigned_transactions::parse_assigned_transactions_csv,
 };
 
 pub fn persist_association(
     budget_item: BudgetItem,
     transaction: Transaction,
     assigned_transactions: &Arc<Mutex<Vec<AssignedTransaction>>>,
+    current_file: &Arc<Mutex<CycleFile>>,
 ) -> Result<()> {
     let record = create_record(&transaction, &budget_item);
-    append_to_file(ASSIGNED_TRANSACTIONS_FILE_NAME, &record)?;
-    let mut assigned_transactions = assigned_transactions.lock().unwrap();
+    let current_file = current_file
+        .lock()
+        .map_err(|_| anyhow!("Could not lock current file"))?;
+    append_to_file(&current_file.path, &record)?;
+    let mut assigned_transactions = assigned_transactions
+        .lock()
+        .map_err(|_| anyhow!("Could not lock assigned transactions"))?;
     assigned_transactions.clear();
-    parse_assigned_transactions_csv(ASSIGNED_TRANSACTIONS_FILE_NAME)?
+    parse_assigned_transactions_csv(&current_file.path)?
         .into_iter()
         .for_each(|x| assigned_transactions.push(x));
     Ok(())
@@ -39,7 +43,7 @@ fn create_record(transaction: &Transaction, budget_item: &BudgetItem) -> Vec<Str
     .to_vec()
 }
 
-fn append_to_file(path: &str, record: &Vec<String>) -> Result<()> {
+fn append_to_file(path: &PathBuf, record: &Vec<String>) -> Result<()> {
     let file = OpenOptions::new().create(true).append(true).open(path)?;
 
     let mut writer = Writer::from_writer(file);
@@ -48,5 +52,5 @@ fn append_to_file(path: &str, record: &Vec<String>) -> Result<()> {
         .with_context(|| format!("Problem writing record {:#?}", record))?;
     writer
         .flush()
-        .with_context(|| format!("Problem flushing file, {}", path))
+        .with_context(|| format!("Problem flushing file, {:#?}", path))
 }

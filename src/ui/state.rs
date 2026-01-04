@@ -18,8 +18,7 @@ pub struct State {
 impl State {
     pub fn update_current_file(&self, current_file: CycleFile) {
         *self.assigned_transactions.lock().unwrap() =
-            parse_assigned_transactions_csv(current_file.path.as_os_str().to_str().unwrap())
-                .unwrap();
+            parse_assigned_transactions_csv(&current_file.path).unwrap();
         *self.current_file.lock().unwrap() = current_file;
     }
 }

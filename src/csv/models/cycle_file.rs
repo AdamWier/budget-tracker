@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::csv::models::list_item::ListItem;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CycleFile {
     pub path: PathBuf,
     pub list_label: String,

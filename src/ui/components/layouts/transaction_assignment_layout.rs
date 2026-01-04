@@ -67,6 +67,7 @@ impl TransactionAssignmentLayout<'_> {
             budget_item.unwrap().get_savable_value(),
             transaction_item.unwrap().get_savable_value(),
             &self.state.assigned_transactions,
+            &self.state.current_file,
         )
         .unwrap();
         self.transaction_list.remove_selected_item();

@@ -49,7 +49,12 @@ impl<'a> MainLayout<'a> {
 
 impl Component<'_> for MainLayout<'_> {
     fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
-        self.transaction_assignment_layout.handle_events(event)?;
+        match self.tabs_manager.selected_tab_index {
+            0 => self.cycles_layout.handle_events(event),
+            1 => self.transaction_assignment_layout.handle_events(event),
+            2 => self.totals_layout.handle_events(event),
+            _ => panic!(),
+        }?;
         self.tabs_manager.handle_events(event)
     }
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
