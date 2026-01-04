@@ -1,7 +1,7 @@
-use std::{ops::Mul, rc::Rc};
+use std::{ops::Mul, rc::Rc, str::FromStr};
 
 use anyhow::{Context, Result};
-use chrono::{Datelike, Local};
+use chrono::{Local, NaiveDate};
 use itertools::Itertools;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -17,7 +17,6 @@ use crate::{
         components::{reusable::chart::RatatuiChart, Component, Tab},
         state::State,
     },
-    utils::get_days_in_current_month,
 };
 
 use super::total_information::TotalInformation;
@@ -63,17 +62,32 @@ impl TotalsLayout<'_> {
                     .iter()
                     .find(|x| x.code == *key)
                     .with_context(|| format!("No budget item found for key {key}"))?;
-                let total = chunk
+
+                let chunked = chunk.into_iter().collect_vec();
+
+                let total = chunked
+                    .iter()
                     .fold(0.0, |accu, transaction| accu + transaction.amount)
                     .mul(-1.0);
 
-                let days_in_current_month = get_days_in_current_month()
-                    .with_context(|| format!("Could not get days in current month"))?
-                    as f32;
-                let current_day_of_month = Local::now().day() as f32;
-                let max_to_date = budget_amount / days_in_current_month * current_day_of_month;
+                let first_day_of_chunk = chunked
+                    .iter()
+                    .max_by(|a, b| {
+                        NaiveDate::from_str(&a.date)
+                            .unwrap_or_default()
+                            .cmp(&NaiveDate::from_str(&b.date).unwrap_or_default())
+                    })
+                    .and_then(|x| NaiveDate::from_str(&x.date).ok())
+                    .unwrap_or(Local::now().date_naive());
+                let today = Local::now().date_naive();
+                let time_since_start_of_cycle = today - first_day_of_chunk;
+                let days_since_start_of_cycle = time_since_start_of_cycle.num_days() as f32;
+
+                let number_of_days_in_cycle = 365.0 / 12.0;
+                let max_to_date =
+                    budget_amount / number_of_days_in_cycle * days_since_start_of_cycle;
                 let projected_spending =
-                    budget_amount / days_in_current_month * (current_day_of_month + 7.0);
+                    budget_amount / number_of_days_in_cycle * (days_since_start_of_cycle + 7.0);
 
                 Ok(TotalInformation {
                     budget_amount: *budget_amount,
