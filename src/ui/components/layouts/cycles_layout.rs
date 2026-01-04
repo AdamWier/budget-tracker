@@ -42,6 +42,7 @@ impl CyclesLayout<'_> {
             .clone()
             .into_iter()
             .chain([new_file_choice].into_iter())
+            .rev()
             .collect_vec();
         self.cycle_list.update_list_items(file_choices);
     }
