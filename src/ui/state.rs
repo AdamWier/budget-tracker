@@ -1,5 +1,7 @@
 use std::sync::{Arc, Mutex};
 
+use anyhow::Result;
+
 use crate::csv::{
     models::{AssignedTransaction, BudgetItem, CycleFile, Transaction},
     parsers::assigned_transactions::parse_assigned_transactions_csv,
@@ -16,17 +18,19 @@ pub struct State {
 }
 
 impl State {
-    pub fn update_current_file(&self, current_file: CycleFile) {
+    pub fn update_current_file(&self, current_file: CycleFile) -> Result<()> {
         let chosen_file = if current_file.path.exists() {
             current_file
         } else {
-            let chosen_file = CycleFile::create_new_file().unwrap();
+            let chosen_file = CycleFile::create_new_file()?;
             self.files.lock().unwrap().push(chosen_file.clone());
             chosen_file
         };
 
         *self.assigned_transactions.lock().unwrap() =
-            parse_assigned_transactions_csv(&chosen_file.path).unwrap();
+            parse_assigned_transactions_csv(&chosen_file.path)?;
         *self.current_file.lock().unwrap() = chosen_file;
+
+        Ok(())
     }
 }

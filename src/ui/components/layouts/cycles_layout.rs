@@ -47,12 +47,14 @@ impl CyclesLayout<'_> {
         self.cycle_list.update_list_items(file_choices);
     }
     fn change_cycle(&self) {
-        self.state.update_current_file(
-            self.cycle_list
-                .get_selected_item()
-                .unwrap()
-                .get_savable_value(),
-        );
+        self.state
+            .update_current_file(
+                self.cycle_list
+                    .get_selected_item()
+                    .unwrap()
+                    .get_savable_value(),
+            )
+            .unwrap();
     }
     fn handle_enter_key(&mut self) {
         self.change_cycle()
