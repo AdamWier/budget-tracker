@@ -1,7 +1,8 @@
-use std::rc::Rc;
+use std::{path::PathBuf, rc::Rc};
 
 use color_eyre::eyre::Result;
 use crossterm::event::{Event, KeyCode, KeyEvent};
+use itertools::Itertools;
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     Frame,
@@ -23,8 +24,20 @@ pub struct CyclesLayout<'a> {
 
 impl CyclesLayout<'_> {
     pub fn init(state: &'_ State) -> CyclesLayout<'_> {
+        let new_file_choice = CycleFile {
+            path: PathBuf::new(),
+            list_label: "Start a new cycle".to_string(),
+        };
+        let file_choices = state
+            .files
+            .lock()
+            .unwrap()
+            .clone()
+            .into_iter()
+            .chain([new_file_choice].into_iter())
+            .collect_vec();
         CyclesLayout {
-            cycle_list: ScrollableList::init(state.files.clone(), KeyCode::Up, KeyCode::Down),
+            cycle_list: ScrollableList::init(file_choices, KeyCode::Up, KeyCode::Down),
             state,
         }
     }

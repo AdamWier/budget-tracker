@@ -21,23 +21,15 @@ use csv::{
 use itertools::Itertools;
 use ui::{app_builder::AppBuilder, state::State};
 
-use crate::{csv::models::CycleFile, start_up::get_file_list};
+use crate::start_up::get_file_list;
 
 fn main() -> Result<()> {
     create_dir_all("./cycles")?;
 
     let file_list = get_file_list()?;
     let current_file = file_list.first().cloned().context("No files in list")?;
-    let new_file_choice = CycleFile {
-        path: PathBuf::new(),
-        list_label: "Start a new cycle".to_string(),
-    };
-    let all_file_choices = file_list
-        .into_iter()
-        .sorted()
-        .unique()
-        .chain([new_file_choice].into_iter())
-        .collect_vec();
+
+    let all_file_choices = file_list.into_iter().sorted().unique().collect_vec();
 
     let assigned_transactions =
         assigned_transactions::parse_assigned_transactions_csv(&current_file.path)?;
@@ -51,10 +43,11 @@ fn main() -> Result<()> {
 
     let assigned_transactions_arc = Arc::new(Mutex::new(assigned_transactions));
     let current_file_arc = Arc::new(Mutex::new(current_file));
+    let all_files_arc = Arc::new(Mutex::new(all_file_choices));
 
     let state = State {
         current_file: current_file_arc,
-        files: all_file_choices,
+        files: all_files_arc,
         assigned_transactions: assigned_transactions_arc,
         transactions: parse_result.transactions,
         blance: parse_result.balance,
