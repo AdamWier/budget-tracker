@@ -25,6 +25,6 @@ pub fn add_spending_money(items: Vec<BudgetItem>) -> Vec<BudgetItem> {
 
     items
         .into_iter()
-        .chain(vec![spending_money_item].into_iter())
+        .chain(vec![spending_money_item])
         .collect_vec()
 }

@@ -35,7 +35,7 @@ pub fn persist_association(
 
 fn create_record(transaction: &Transaction, budget_item: &BudgetItem) -> Vec<String> {
     [
-        String::from(budget_item.code.clone()),
+        budget_item.code.to_string(),
         transaction.date.to_string(),
         transaction.label.to_string(),
         transaction.amount.to_string(),

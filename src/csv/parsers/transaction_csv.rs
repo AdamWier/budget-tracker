@@ -10,7 +10,7 @@ use crate::csv::models::{self, AssignedTransaction, ComparableTransaction};
 
 pub fn parse_transaction_csv(
     path: &str,
-    assigned_transactions: &Vec<AssignedTransaction>,
+    assigned_transactions: &[AssignedTransaction],
 ) -> Result<models::ParseResult> {
     let mut file_content = Vec::new();
     let mut file = File::open(path)?;

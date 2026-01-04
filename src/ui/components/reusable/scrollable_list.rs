@@ -36,7 +36,7 @@ impl<T: PartialEq + ListItem<T>> ScrollableList<T> {
     pub fn get_selected_item(&self) -> Option<&T> {
         self.list_state
             .selected()
-            .and_then(|x| Some(self.list_items.get(x)?))
+            .and_then(|x| self.list_items.get(x))
     }
     fn scroll_down(&mut self) -> Result<()> {
         let transaction_list_max = self.list_items.len().saturating_sub(self.list_screen_lines);
