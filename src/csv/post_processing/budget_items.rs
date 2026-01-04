@@ -1,20 +1,30 @@
+use itertools::Itertools;
+
 use crate::csv::models::{BudgetItem, BudgetItemType};
 
-pub fn add_spending_money(items: &mut Vec<BudgetItem>) {
+pub fn add_spending_money(items: Vec<BudgetItem>) -> Vec<BudgetItem> {
     let total_expenses = items.iter().fold(0.0, |accu, item| {
         accu + (if item.code == "SAL" { 0.0 } else { item.amount })
     });
+
     let salary = items
         .iter()
         .position(|x| x.code == "SAL")
         .and_then(|x| items.get(x))
         .map(|x| x.amount)
         .unwrap_or(0.0);
+
     let spending_money = salary - total_expenses;
-    items.push(BudgetItem {
+
+    let spending_money_item = BudgetItem {
         label: "Spending money".to_string(),
         amount: spending_money,
         code: "SPEN".to_string(),
         setting: BudgetItemType::MULTI,
-    });
+    };
+
+    items
+        .into_iter()
+        .chain(vec![spending_money_item].into_iter())
+        .collect_vec()
 }

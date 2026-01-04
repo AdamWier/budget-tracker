@@ -2,12 +2,16 @@ use anyhow::{anyhow, Result};
 use csv::ReaderBuilder;
 use encoding::all::ISO_8859_15;
 use encoding::Encoding;
+use itertools::Itertools;
 use std::fs::File;
 use std::io::Read;
 
-use crate::csv::models;
+use crate::csv::models::{self, AssignedTransaction, ComparableTransaction};
 
-pub fn parse_transaction_csv(path: &str) -> Result<models::ParseResult> {
+pub fn parse_transaction_csv(
+    path: &str,
+    assigned_transactions: &Vec<AssignedTransaction>,
+) -> Result<models::ParseResult> {
     let mut file_content = Vec::new();
     let mut file = File::open(path)?;
     file.read_to_end(&mut file_content)?;
@@ -17,9 +21,19 @@ pub fn parse_transaction_csv(path: &str) -> Result<models::ParseResult> {
 
     let transactions = get_transactions(&encoded_file)?;
     let balance = transactions.last().map(|x| x.balance).unwrap_or(0.0);
+
+    let transactions_to_be_assigned = transactions
+        .into_iter()
+        .filter(|x| {
+            !assigned_transactions
+                .iter()
+                .any(|y| x.get_comparable_value() == y.get_comparable_value())
+        })
+        .collect_vec();
+
     Ok(models::ParseResult {
         balance,
-        transactions,
+        transactions_to_be_assigned,
     })
 }
 

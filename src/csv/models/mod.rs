@@ -16,6 +16,6 @@ pub use transaction::Transaction;
 
 #[derive(Debug)]
 pub struct ParseResult {
-    pub transactions: Vec<Transaction>,
+    pub transactions_to_be_assigned: Vec<Transaction>,
     pub balance: f32,
 }

@@ -41,7 +41,7 @@ impl BalanceLayout<'_> {
             .into_iter()
             .filter(|x| !assigned_transactions_codes.contains(&x.code))
             .fold(0.0, |accu, item| accu + item.amount);
-        self.state.blance - total_pending
+        self.state.balance - total_pending
     }
 }
 
@@ -58,7 +58,7 @@ impl Component<'_> for BalanceLayout<'_> {
             .style(Style::default().fg(Color::Rgb(255, 176, 0)));
 
         let current_balance_paragraph = Paragraph::new(Text::styled(
-            format!("Balance: {}", self.state.blance),
+            format!("Balance: {}", self.state.balance),
             Style::default().fg(Color::Rgb(255, 176, 0)),
         ))
         .alignment(Alignment::Center)

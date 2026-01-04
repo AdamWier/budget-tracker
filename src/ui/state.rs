@@ -10,7 +10,7 @@ pub struct State {
     pub files: Arc<Mutex<Vec<CycleFile>>>,
     pub current_file: Arc<Mutex<CycleFile>>,
     pub transactions: Vec<Transaction>,
-    pub blance: f32,
+    pub balance: f32,
     pub budget_items: Vec<BudgetItem>,
     pub assigned_transactions: Arc<Mutex<Vec<AssignedTransaction>>>,
 }

@@ -1,4 +1,4 @@
-use std::{num::ParseFloatError, sync::LockResult};
+use std::num::ParseFloatError;
 
 use chrono::{Datelike, Local, NaiveDate};
 
