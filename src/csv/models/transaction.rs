@@ -7,6 +7,7 @@ use super::list_item::ListItem;
 #[derive(Debug, Deserialize, Clone, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Transaction {
+    #[serde(alias = "Date")]
     pub date: String,
     #[serde(rename = "Libellé")]
     pub label: String,

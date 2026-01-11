@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use csv::ReaderBuilder;
-use encoding::all::ISO_8859_15;
+use encoding::all::ISO_8859_1;
 use encoding::Encoding;
 use itertools::Itertools;
 use std::fs::File;
@@ -15,7 +15,7 @@ pub fn parse_transaction_csv(
     let mut file_content = Vec::new();
     let mut file = File::open(path)?;
     file.read_to_end(&mut file_content)?;
-    let encoded_file = ISO_8859_15
+    let encoded_file = ISO_8859_1
         .decode(&file_content, encoding::DecoderTrap::Replace)
         .map_err(|_| anyhow!("Could not get file encoding for {}", path))?;
 
@@ -39,7 +39,7 @@ pub fn parse_transaction_csv(
 
 fn get_transactions(information: &str) -> Result<Vec<models::Transaction>> {
     let mut reader = ReaderBuilder::new()
-        .delimiter(b';')
+        .delimiter(b',')
         .from_reader(information.as_bytes());
     let mut transactions = Vec::new();
     for result in reader.deserialize() {
