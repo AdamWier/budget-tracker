@@ -12,6 +12,7 @@ use ratatui::{
 };
 
 use crate::{
+    consts::{NUMBER_OF_DAYS_IN_CYCLE, ONE_WEEK_OF_THE_CYCLE},
     csv::models::{BudgetItem, BudgetItemType},
     ui::{
         components::{reusable::chart::RatatuiChart, Component, Tab},
@@ -31,6 +32,21 @@ impl TotalsLayout<'_> {
     pub fn init(state: &State) -> TotalsLayout<'_> {
         TotalsLayout { sections: 1, state }
     }
+    fn get_days_since_start_of_cycle(&self) -> Result<i64> {
+        let first_day_of_cycle = self
+            .state
+            .assigned_transactions
+            .lock()
+            .unwrap()
+            .iter()
+            .min_by(|a, b| a.date.cmp(&b.date))
+            .map(|x| x.date)
+            .unwrap_or(Local::now().date_naive());
+
+        let today = Local::now().date_naive();
+        let time_since_start_of_cycle = today - first_day_of_cycle;
+        Ok(time_since_start_of_cycle.num_days())
+    }
     fn get_code_total_information(&self) -> Result<Vec<TotalInformation>> {
         let budget_items_to_total = self
             .state
@@ -44,21 +60,7 @@ impl TotalsLayout<'_> {
             .map(|x| x.code.clone())
             .collect_vec();
 
-        let first_day_of_cycle = self
-            .state
-            .assigned_transactions
-            .lock()
-            .unwrap()
-            .iter()
-            .min_by(|a, b| a.date.cmp(&b.date))
-            .map(|x| x.date)
-            .unwrap_or(Local::now().date_naive());
-
-        let today = Local::now().date_naive();
-        let time_since_start_of_cycle = today - first_day_of_cycle;
-        let days_since_start_of_cycle = time_since_start_of_cycle.num_days() as f32;
-        let number_of_days_in_cycle = 365.0 / 12.0;
-        let one_week_of_the_cycle = 365.0 / 52.0;
+        let days_since_start_of_cycle = self.get_days_since_start_of_cycle()? as f32;
 
         self.state
             .assigned_transactions
@@ -86,10 +88,10 @@ impl TotalsLayout<'_> {
                     .fold(0.0, |accu, transaction| accu + transaction.amount)
                     .mul(-1.0);
 
-                let amount_per_day = budget_amount / number_of_days_in_cycle;
+                let amount_per_day = budget_amount / NUMBER_OF_DAYS_IN_CYCLE;
                 let max_to_date = amount_per_day * days_since_start_of_cycle;
                 let projected_spending =
-                    amount_per_day * (days_since_start_of_cycle + one_week_of_the_cycle);
+                    amount_per_day * (days_since_start_of_cycle + ONE_WEEK_OF_THE_CYCLE);
 
                 Ok(TotalInformation {
                     budget_amount: *budget_amount,
