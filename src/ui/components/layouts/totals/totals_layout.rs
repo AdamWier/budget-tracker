@@ -1,7 +1,7 @@
-use std::{ops::Mul, rc::Rc, str::FromStr};
+use std::{ops::Mul, rc::Rc};
 
 use anyhow::{Context, Result};
-use chrono::{Datelike, Local, NaiveDate, NaiveTime};
+use chrono::Local;
 use itertools::Itertools;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -50,15 +50,9 @@ impl TotalsLayout<'_> {
             .lock()
             .unwrap()
             .iter()
-            .min_by(|a, b| {
-                NaiveDate::from_str(&a.date)
-                    .unwrap_or_default()
-                    .cmp(&NaiveDate::from_str(&b.date).unwrap_or_default())
-            })
-            .and_then(|x| x.date.split("/").into_iter().collect_tuple())
-            .map(|(day, month, year)| format!("{year}-{month}-{day}"))
-            .context("Could not find date")
-            .and_then(|x| NaiveDate::from_str(&x.trim()).context("Could not parse date"))?;
+            .min_by(|a, b| a.date.cmp(&b.date))
+            .map(|x| x.date)
+            .unwrap_or(Local::now().date_naive());
 
         let today = Local::now().date_naive();
         let time_since_start_of_cycle = today - first_day_of_cycle;

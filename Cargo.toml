@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 ansi-to-tui = "4.0.1"
 anyhow = "1.0.94"
-chrono = "0.4.38"
+chrono = {version = "0.4.38", features = ["serde"]}
 color-eyre = "0.6.3"
 crossterm = "0.27.0"
 csv = "1.1"

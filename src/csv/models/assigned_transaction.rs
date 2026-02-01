@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use serde::Deserialize;
 
 use super::comparable_transaction::ComparableTransaction;
@@ -5,7 +6,7 @@ use super::comparable_transaction::ComparableTransaction;
 #[derive(Debug, Deserialize)]
 pub struct AssignedTransaction {
     pub code: String,
-    pub date: String,
+    pub date: NaiveDate,
     pub label: String,
     pub amount: f32,
 }
