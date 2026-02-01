@@ -1,7 +1,7 @@
 use std::{ops::Mul, rc::Rc, str::FromStr};
 
 use anyhow::{Context, Result};
-use chrono::{Local, NaiveDate};
+use chrono::{Datelike, Local, NaiveDate, NaiveTime};
 use itertools::Itertools;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
@@ -44,6 +44,28 @@ impl TotalsLayout<'_> {
             .map(|x| x.code.clone())
             .collect_vec();
 
+        let first_day_of_cycle = self
+            .state
+            .assigned_transactions
+            .lock()
+            .unwrap()
+            .iter()
+            .min_by(|a, b| {
+                NaiveDate::from_str(&a.date)
+                    .unwrap_or_default()
+                    .cmp(&NaiveDate::from_str(&b.date).unwrap_or_default())
+            })
+            .and_then(|x| x.date.split("/").into_iter().collect_tuple())
+            .map(|(day, month, year)| format!("{year}-{month}-{day}"))
+            .context("Could not find date")
+            .and_then(|x| NaiveDate::from_str(&x.trim()).context("Could not parse date"))?;
+
+        let today = Local::now().date_naive();
+        let time_since_start_of_cycle = today - first_day_of_cycle;
+        let days_since_start_of_cycle = time_since_start_of_cycle.num_days() as f32;
+        let number_of_days_in_cycle = 365.0 / 12.0;
+        let one_week_of_the_cycle = 365.0 / 52.0;
+
         self.state
             .assigned_transactions
             .lock()
@@ -70,24 +92,10 @@ impl TotalsLayout<'_> {
                     .fold(0.0, |accu, transaction| accu + transaction.amount)
                     .mul(-1.0);
 
-                let first_day_of_chunk = chunked
-                    .iter()
-                    .max_by(|a, b| {
-                        NaiveDate::from_str(&a.date)
-                            .unwrap_or_default()
-                            .cmp(&NaiveDate::from_str(&b.date).unwrap_or_default())
-                    })
-                    .and_then(|x| NaiveDate::from_str(&x.date).ok())
-                    .unwrap_or(Local::now().date_naive());
-                let today = Local::now().date_naive();
-                let time_since_start_of_cycle = today - first_day_of_chunk;
-                let days_since_start_of_cycle = time_since_start_of_cycle.num_days() as f32;
-
-                let number_of_days_in_cycle = 365.0 / 12.0;
-                let max_to_date =
-                    budget_amount / number_of_days_in_cycle * days_since_start_of_cycle;
+                let amount_per_day = budget_amount / number_of_days_in_cycle;
+                let max_to_date = amount_per_day * days_since_start_of_cycle;
                 let projected_spending =
-                    budget_amount / number_of_days_in_cycle * (days_since_start_of_cycle + 7.0);
+                    amount_per_day * (days_since_start_of_cycle + one_week_of_the_cycle);
 
                 Ok(TotalInformation {
                     budget_amount: *budget_amount,
