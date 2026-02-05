@@ -1,6 +1,8 @@
-use std::{collections::BTreeMap, ops::Mul, rc::Rc};
+use std::{ops::Mul, rc::Rc};
 
-use chrono::{Datelike, Local};
+use anyhow::{Context, Result};
+use chrono::Local;
+use itertools::Itertools;
 use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style},
@@ -10,12 +12,12 @@ use ratatui::{
 };
 
 use crate::{
-    csv::models::{AssignedTransaction, BudgetItemType},
+    consts::{NUMBER_OF_DAYS_IN_CYCLE, ONE_WEEK_OF_THE_CYCLE},
+    csv::models::{BudgetItem, BudgetItemType},
     ui::{
-        components::{reusable::chart::RatatuiChart, Component},
+        components::{reusable::chart::RatatuiChart, Component, Tab},
         state::State,
     },
-    utils::get_days_in_current_month,
 };
 
 use super::total_information::TotalInformation;
@@ -30,49 +32,76 @@ impl TotalsLayout<'_> {
     pub fn init(state: &State) -> TotalsLayout<'_> {
         TotalsLayout { sections: 1, state }
     }
-    fn get_code_total_information(&self) -> Vec<TotalInformation> {
-        let mut budget_items_to_total = self
+    fn get_days_since_start_of_cycle(&self) -> Result<i64> {
+        let first_day_of_cycle = self
+            .state
+            .assigned_transactions
+            .lock()
+            .unwrap()
+            .iter()
+            .min_by(|a, b| a.date.cmp(&b.date))
+            .map(|x| x.date)
+            .unwrap_or(Local::now().date_naive());
+
+        let today = Local::now().date_naive();
+        let time_since_start_of_cycle = today - first_day_of_cycle;
+        Ok(time_since_start_of_cycle.num_days())
+    }
+    fn get_code_total_information(&self) -> Result<Vec<TotalInformation>> {
+        let budget_items_to_total = self
             .state
             .budget_items
             .iter()
-            .filter(|x| x.setting == BudgetItemType::MULTI);
-        let codes_to_total: Vec<String> = budget_items_to_total
-            .clone()
-            .map(|x| x.code.to_string())
-            .collect();
-        let assigned_transactions_binding = self.state.assigned_transactions.lock().unwrap();
-        let assigned_transactions = assigned_transactions_binding
+            .filter(|x| x.setting == BudgetItemType::MULTI)
+            .collect_vec();
+
+        let codes_to_total = budget_items_to_total
             .iter()
-            .filter(|x| codes_to_total.contains(&x.code));
-        let assigned_transactions_by_code = &assigned_transactions.into_iter().fold(
-            BTreeMap::new(),
-            |mut map: BTreeMap<String, Vec<&AssignedTransaction>>, x| {
-                map.entry(x.code.to_string()).or_default().push(x);
-                map
-            },
-        );
-        let mut total_information: Vec<TotalInformation> = Vec::new();
-        for (key, chunk) in assigned_transactions_by_code {
-            let budget_item = budget_items_to_total.find(|x| x.code == *key).unwrap();
-            let total = chunk
-                .iter()
-                .fold(0.0, |accu, transaction| accu + transaction.amount);
+            .map(|x| x.code.clone())
+            .collect_vec();
 
-            let days_in_current_month = get_days_in_current_month().unwrap() as f32;
-            let current_day_of_month = Local::now().day() as f32;
-            let max_to_date = budget_item.amount / days_in_current_month * current_day_of_month;
-            let projected_spending =
-                budget_item.amount / days_in_current_month * (current_day_of_month + 7.0);
+        let days_since_start_of_cycle = self.get_days_since_start_of_cycle()? as f32;
 
-            total_information.push(TotalInformation {
-                budget_amount: budget_item.amount,
-                label: budget_item.label.to_string(),
-                total: total.mul(-1.0),
-                max_to_date,
-                projected_spending,
+        self.state
+            .assigned_transactions
+            .lock()
+            .unwrap()
+            .iter()
+            .filter(|x| codes_to_total.contains(&x.code))
+            .sorted_by(|a, b| a.code.cmp(&b.code))
+            .chunk_by(|x| &x.code)
+            .into_iter()
+            .map(|(key, chunk)| {
+                let BudgetItem {
+                    amount: budget_amount,
+                    label,
+                    ..
+                } = budget_items_to_total
+                    .iter()
+                    .find(|x| x.code == *key)
+                    .with_context(|| format!("No budget item found for key {key}"))?;
+
+                let chunked = chunk.into_iter().collect_vec();
+
+                let total = chunked
+                    .iter()
+                    .fold(0.0, |accu, transaction| accu + transaction.amount)
+                    .mul(-1.0);
+
+                let amount_per_day = budget_amount / NUMBER_OF_DAYS_IN_CYCLE;
+                let max_to_date = amount_per_day * days_since_start_of_cycle;
+                let projected_spending =
+                    amount_per_day * (days_since_start_of_cycle + ONE_WEEK_OF_THE_CYCLE);
+
+                Ok(TotalInformation {
+                    budget_amount: *budget_amount,
+                    label: label.to_string(),
+                    total,
+                    max_to_date,
+                    projected_spending,
+                })
             })
-        }
-        total_information
+            .collect()
     }
     fn set_sections(&mut self, sections: u16) {
         self.sections = std::cmp::max(sections, 1)
@@ -82,61 +111,60 @@ impl TotalsLayout<'_> {
 impl Component<'_> for TotalsLayout<'_> {
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
         let size_for_each = 100_u16.saturating_div(self.sections);
-        let mut constraints: Vec<Constraint> = Vec::new();
-        for _constraint in 0..self.sections {
-            constraints.push(Constraint::Percentage(size_for_each))
-        }
+        let constraints = vec![Constraint::Percentage(size_for_each); self.sections.into()];
         Layout::default()
             .direction(Direction::Horizontal)
             .constraints(constraints)
             .split(area)
     }
     fn render(&mut self, frame: &mut Frame<'_>, area: Rect) {
-        let mut total_paragraphs: Vec<Paragraph> = self
-            .get_code_total_information()
-            .into_iter()
-            .map(|x| {
-                Paragraph::new(Text::styled(
-                    format!(
-                        "{}: {}/{}\nMax to date: {}\nFor the coming week: {}",
-                        x.label,
-                        x.total,
-                        x.budget_amount,
-                        x.max_to_date,
-                        (x.projected_spending - x.total).max(0.0)
-                    ),
-                    Style::default().fg(Color::Rgb(255, 176, 0)),
-                ))
-                .alignment(Alignment::Center)
-            })
-            .collect();
+        let code_total_information = self.get_code_total_information().unwrap();
 
-        let charts = self
-            .get_code_total_information()
-            .into_iter()
+        let charts = code_total_information
+            .iter()
             .map(move |x| RatatuiChart::new(x.get_chart_data()));
 
-        let total_sections = total_paragraphs.len() * 2;
-        self.set_sections(total_sections as u16);
+        let paragraphs_for_total = (!code_total_information.is_empty())
+            .then(|| {
+                code_total_information
+                    .iter()
+                    .map(|x| {
+                        Paragraph::new(Text::styled(
+                            format!(
+                                "{}: {}/{}\nMax to date: {}\nFor the coming week: {}",
+                                x.label,
+                                x.total,
+                                x.budget_amount,
+                                x.max_to_date,
+                                (x.projected_spending - x.total).max(0.0)
+                            ),
+                            Style::default().fg(Color::Rgb(255, 176, 0)),
+                        ))
+                        .alignment(Alignment::Center)
+                    })
+                    .collect_vec()
+            })
+            .unwrap_or(vec![Paragraph::new(Text::styled(
+                "No items to total",
+                Style::default().fg(Color::Rgb(255, 176, 0)),
+            ))
+            .alignment(Alignment::Center)]);
 
+        //Sections must be set before getting layout
+        self.set_sections((paragraphs_for_total.len() * 2) as u16);
         let layout = self.get_layout(area);
-
-        if total_paragraphs.is_empty() {
-            total_paragraphs.push(
-                Paragraph::new(Text::styled(
-                    "No items to total",
-                    Style::default().fg(Color::Rgb(255, 176, 0)),
-                ))
-                .alignment(Alignment::Center),
-            );
-        }
-
-        total_paragraphs
+        paragraphs_for_total
             .iter()
             .enumerate()
             .for_each(|(index, paragraph)| frame.render_widget(paragraph, layout[index * 2]));
         charts
             .enumerate()
             .for_each(|(index, paragraph)| paragraph.draw_chart(frame, layout[(index * 2) + 1]))
+    }
+}
+
+impl Tab for TotalsLayout<'_> {
+    fn get_name(&self) -> String {
+        "Totals".to_string()
     }
 }

@@ -8,20 +8,25 @@ use super::components::{layouts::main_layout::MainLayout, Component};
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;
 
-#[derive(Debug)]
 pub struct App<'a> {
     exit: bool,
     main_layout: MainLayout<'a>,
-    watcher: ReadDirectoryChangesWatcher,
+    assigned_files_watcher: ReadDirectoryChangesWatcher,
+    cycle_files_watcher: ReadDirectoryChangesWatcher,
 }
 
 #[allow(clippy::single_match)]
 impl<'a> App<'a> {
-    pub fn new(main_layout: MainLayout<'a>, watcher: ReadDirectoryChangesWatcher) -> App<'a> {
+    pub fn new(
+        main_layout: MainLayout<'a>,
+        assigned_files_watcher: ReadDirectoryChangesWatcher,
+        cycle_files_watcher: ReadDirectoryChangesWatcher,
+    ) -> App<'a> {
         Self {
             exit: false,
             main_layout,
-            watcher,
+            assigned_files_watcher,
+            cycle_files_watcher,
         }
     }
     pub fn run(&mut self, terminal: &mut Tui) -> Result<()> {
@@ -29,8 +34,10 @@ impl<'a> App<'a> {
             terminal.draw(|frame| self.render_frame(frame))?;
             self.handle_events().wrap_err("handle events failed")?;
         }
-        self.watcher
+        self.assigned_files_watcher
             .unwatch(Path::new("assigned_transactions.csv"))?;
+        self.cycle_files_watcher
+            .unwatch(Path::new("./cycles.csv"))?;
         Ok(())
     }
 

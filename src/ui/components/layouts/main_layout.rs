@@ -14,27 +14,30 @@ use super::{
     transaction_assignment_layout::TransactionAssignmentLayout,
 };
 use crate::ui::{
-    components::{reusable::tabs::TabsManager, Component},
+    components::{
+        layouts::cycles_layout::CyclesLayout, reusable::tabs::TabsManager, Component, Tab,
+    },
     state::State,
 };
 
-#[derive(Debug)]
 pub struct MainLayout<'a> {
-    transaction_assignment_layout: TransactionAssignmentLayout<'a>,
-    totals_layout: TotalsLayout<'a>,
-    tabs_manager: TabsManager,
+    tabs_manager: TabsManager<'a>,
     balance_layout: BalanceLayout<'a>,
+    state: &'a State,
 }
 
 impl<'a> MainLayout<'a> {
     pub fn init(state: &'a State) -> MainLayout<'a> {
-        let tabs = ["Sorter", "Totals"];
+        let tabs = vec![
+            Box::new(CyclesLayout::init(state)) as Box<dyn Tab>,
+            Box::new(TransactionAssignmentLayout::init(state)) as Box<dyn Tab>,
+            Box::new(TotalsLayout::init(state)) as Box<dyn Tab>,
+        ];
 
         Self {
-            transaction_assignment_layout: TransactionAssignmentLayout::init(state),
-            totals_layout: TotalsLayout::init(state),
-            tabs_manager: TabsManager::init(tabs.map(String::from).to_vec()),
+            tabs_manager: TabsManager::init(tabs),
             balance_layout: BalanceLayout::init(state),
+            state,
         }
     }
     fn get_footer_layout(&self, parent_chunk: Rect) -> Rc<[Rect]> {
@@ -47,7 +50,6 @@ impl<'a> MainLayout<'a> {
 
 impl Component<'_> for MainLayout<'_> {
     fn handle_child_events(&mut self, event: &Event) -> color_eyre::eyre::Result<()> {
-        self.transaction_assignment_layout.handle_events(event)?;
         self.tabs_manager.handle_events(event)
     }
     fn get_layout(&self, area: Rect) -> Rc<[Rect]> {
@@ -66,7 +68,10 @@ impl Component<'_> for MainLayout<'_> {
             .style(Style::default().fg(Color::Rgb(255, 176, 0)));
 
         let title = Paragraph::new(Text::styled(
-            "World's Best Budget Manager",
+            format!(
+                "World's Best Budget Manager (Current file: {})",
+                self.state.current_file.lock().unwrap().list_label
+            ),
             Style::default().fg(Color::Rgb(255, 176, 0)),
         ))
         .alignment(Alignment::Center)
@@ -80,13 +85,9 @@ impl Component<'_> for MainLayout<'_> {
         };
 
         frame.render_widget(title, title_chunk);
-        match self.tabs_manager.selected_tab_index {
-            0 => self
-                .transaction_assignment_layout
-                .render(frame, transaction_chunk),
-            1 => self.totals_layout.render(frame, transaction_chunk),
-            _ => panic!(),
-        }
+        self.tabs_manager
+            .get_tab_to_render()
+            .render(frame, transaction_chunk);
         self.tabs_manager.render(frame, tabs_chunk);
         self.balance_layout.render(frame, balance_chunk);
     }
